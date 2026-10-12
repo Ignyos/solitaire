@@ -13,6 +13,11 @@ Generated: 2026-10-12T22:49:10Z
 excluded from the locally approved bootstrap. No steps below have been performed
 by creating this file.
 
+**Paused by owner:** Gate 3 is awaiting GitHub Pages certificate provisioning
+for both custom domains. Resume by inspecting certificate status read-only,
+then asking separately before enabling HTTPS on each site. Gates 4-6 remain
+pending; neither deployment nor this item is complete.
+
 Working branch: `chore-002-deployment-setup`.
 Dependency: approved bootstrap commit `b5d4001` on `chore-001-bootstrap`. This
 branch is based on that unmerged implementation branch. Integrate the bootstrap
@@ -50,7 +55,8 @@ PM lifecycle and branch discipline remain owned by `../workflow.md` and
 ## Gate 1: Repository integration and permissions
 
 Read-only starting evidence: production Pages was configured for `main` / `docs`;
-the external dev repository existed and used `main` / root. Reinspect before acting.
+the external dev repository existed. A later exact Pages inspection found dev
+also using `main` / `docs`, not the required repository root. Reinspect before acting.
 
 - [x] Owner confirms repository access, review/branch-protection policy, and who
   will perform merges. Do not assume direct merges are permitted.
@@ -59,7 +65,7 @@ the external dev repository existed and used `main` / root. Reinspect before act
 - [x] Verify remote `dev` contains the approved bootstrap and its two workflows.
   If integration triggers a dev workflow before secrets exist, record that
   expected blocked run; do not treat it as deployment success.
-- [ ] Decide how to route this chore's PM housekeeping through `dev` without
+- [x] Decide how to route this chore's PM housekeeping through `dev` without
   mixing it with unrelated code, and integrate the checklist using that policy.
 
 Completion evidence: remote branch/SHA and reviewed integration URL or owner
@@ -67,14 +73,14 @@ confirmation. No deployment is considered successful at this gate.
 
 ## Gate 2: Secure development deployment credentials
 
-- [ ] Owner confirms the intended external dev repository matches configuration
+- [x] Owner confirms the intended external dev repository matches configuration
   and may have its `main` branch replaced by orphan deployment snapshots.
-- [ ] Ask the owner to set source-repository `DEV_PAGES_REPO` to the configured
+- [x] Ask the owner to set source-repository `DEV_PAGES_REPO` to the configured
   external repository using the GitHub secret UI or secure CLI interaction.
-- [ ] Ask the owner to create/select a least-privilege token restricted to the
+- [x] Ask the owner to create/select a least-privilege token restricted to the
   external dev repository's required write permissions, then enter it as source
   secret `DEV_PAGES_TOKEN`. Do not print, copy, or store the token.
-- [ ] Read-only inspection confirms both secret **names** exist, Actions is
+- [x] Read-only inspection confirms both secret **names** exist, Actions is
   enabled, and the approved deployment action is allowed. Secret values cannot
   be read back; successful deployment is the operational token check.
 
@@ -86,16 +92,16 @@ scope. No token value belongs in the evidence log.
 Perform each domain/DNS change as its own approved action. Show exact current
 and desired values first; never overwrite unrelated DNS records.
 
-- [ ] Reconfirm source production Pages uses `main` / `docs`, never `dev`.
-- [ ] Owner approves and configures the production Pages custom domain matching
+- [x] Reconfirm source production Pages uses `main` / `docs`, never `dev`.
+- [x] Owner approves and configures the production Pages custom domain matching
   the production target in configuration.
-- [ ] Owner approves/configures production DNS and domain ownership verification
+- [x] Owner approves/configures production DNS and domain ownership verification
   as required by GitHub Pages and the DNS provider.
-- [ ] Reconfirm external dev Pages uses `main` / root and its configured custom
+- [x] Reconfirm external dev Pages uses `main` / root and its configured custom
   domain matches the dev target.
-- [ ] Owner approves/configures or confirms dev DNS and ownership independently
+- [x] Owner approves/configures or confirms dev DNS and ownership independently
   of production.
-- [ ] Read-only DNS/Pages checks confirm each hostname points to its intended
+- [x] Read-only DNS/Pages checks confirm each hostname points to its intended
   Pages repository with no lane crossover.
 - [ ] After GitHub's certificate provisioning completes, separately approve
   enabling HTTPS enforcement for each site. Verify trusted certificates and
@@ -197,3 +203,75 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
   both files were restored without conflicts. The temporary stash was dropped.
   The chore-002 working branch remains retained. PM edits are uncommitted on dev;
   committing and pushing them require separate approval.
+- 2026-10-12 Gate 1: Owner separately approved the PM-only commit and its push.
+  Checklist/index are persisted on remote dev at
+  4b1f4d5dfba0c34de72db25770022651982dfd70. Gate 1 is complete; main remains
+  unchanged. Future PM updates will stay on dev, with commit/push approval.
+- 2026-10-12 Gate 2 read-only inspection: Ignyos/solitaire-dev exists, defaults
+  to main, and owner access includes admin/push. Source repository secret listing
+  remains empty. External repository replacement approval and secret setup are pending.
+- 2026-10-12 Gate 2: Owner confirmed Ignyos/solitaire-dev is the intended
+  deployment-only target and authorized its main branch to be replaced with
+  orphan deployment snapshots by the future approved workflow. No deployment
+  was run by this confirmation.
+- 2026-10-12 Gate 2: Owner reported saving DEV_PAGES_REPO with the configured
+  target. Read-only listing confirmed its name (updated 2026-10-12T23:07:19Z);
+  values cannot be read back. Actions is enabled with all actions allowed.
+  DEV_PAGES_TOKEN is still absent. PM push run
+  https://github.com/Ignyos/solitaire/actions/runs/38319795046 completed with
+  failure before credential setup; no successful live deployment is claimed.
+- 2026-10-12 Gate 2: Owner attested DEV_PAGES_TOKEN was saved with resource owner
+  Ignyos, repository access limited to solitaire-dev, and Contents read/write.
+  Read-only listing confirmed both secret names; token updated
+  2026-10-12T23:22:23Z. Actions remains enabled with all actions allowed.
+  Gate 2 setup is complete; token operation is unverified until a real deployment.
+- 2026-10-12 Gate 3 read-only inspection: production Pages is main/docs,
+  no custom domain or certificate, HTTPS enforcement enabled for the default
+  GitHub hostname. Dev Pages has solitaire-dev.ignyos.com but is main/docs,
+  not the required main/root; no certificate and HTTPS enforcement disabled.
+  The earlier root assumption was incorrect. Stop for owner approval before
+  correcting dev Pages source or making any domain/DNS change.
+- 2026-10-12 Gate 3: Owner approved changing only dev Pages source to main/root.
+  GitHub accepted the source update, but follow-up inspection unexpectedly
+  returned cname=null and HTTPS enforcement=true. The existing dev custom
+  domain was not retained by the source-only Pages API update. Stop and obtain
+  explicit approval to restore the dev domain before further setup.
+- 2026-10-12 Gate 3: Owner separately approved restoring the dev custom domain.
+  API update explicitly supplied both main/root source and
+  solitaire-dev.ignyos.com. Read-back confirmed both; certificate remains null
+  and HTTPS enforcement=false, so dev DNS/certificate/HTTPS readiness is pending.
+- 2026-10-12 Gate 3: Owner approved configuring production custom domain.
+  Read-back confirmed solitaire.ignyos.com with main/docs preserved; certificate
+  is null and HTTPS enforcement=false for the custom domain. Public A/AAAA
+  lookups for both hostnames return Cloudflare proxy addresses, so public DNS
+  cannot establish the underlying GitHub Pages CNAME target. No DNS changes
+  were made; exact DNS records/proxy mode need owner confirmation.
+- 2026-10-12 Gate 3: Owner reported production Cloudflare CNAME target
+  ignyos.github.io with Proxied mode, then separately approved and performed
+  DNS-only change for just solitaire. Public resolver 1.1.1.1 confirmed
+  solitaire.ignyos.com CNAME ignyos.github.io. Production Pages certificate
+  remains null; domain ownership requirements and HTTPS are still unverified.
+- 2026-10-12 Gate 3: Owner reported dev CNAME ignyos.github.io in DNS-only mode.
+  Two bounded DNS checks (public 1.1.1.1 and authoritative
+  byron.ns.cloudflare.com) did not return that CNAME; public A records were
+  returned instead. Verification stopped for owner review rather than assuming
+  the reported record had propagated. Both Pages certificates remain null.
+  Shared browser session could not access repository Pages settings (not signed
+  in); owner must inspect any GitHub DNS/ownership warnings in their own session.
+- 2026-10-12 Gate 3: Owner corrected the earlier dev proxy-mode report: the
+  record was still Proxied, and they changed it to DNS only. Authorized fresh
+  read-only verification confirmed solitaire-dev.ignyos.com CNAME
+  ignyos.github.io via 1.1.1.1. Both hostnames now have the expected public
+  CNAME target and distinct Pages repository/domain mappings. Both Pages APIs
+  still report no certificate and HTTPS enforcement=false; ownership/DNS
+  warnings and certificate provisioning need owner inspection before enforcement.
+- 2026-10-12 Gate 3: Owner inspected both signed-in Pages settings independently
+  and reported DNS check successful with certificate provisioning/HTTPS still
+  unavailable for each. Public CNAME targets and distinct Pages mappings are
+  verified; no ownership warning was reported. HTTPS certificate issuance,
+  enforcement, and trusted-certificate/redirect checks remain incomplete.
+- 2026-10-12: Owner paused deployment readiness while certificates provision and
+  authorized preserving all progress locally: commit PM evidence on dev,
+  fast-forward chore-002-deployment-setup to retain it, then track requirements
+  design as spike-001 and create its separate working branch. No additional
+  pushes, deployments, HTTPS changes, or main integration were authorized.
