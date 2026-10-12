@@ -13,7 +13,7 @@ Generated: 2026-10-12T22:06:35Z
 
 ## current/
 
-- (none)
+- [chore-002](current/chore-002.md)
 
 ## release-candidate-dev/
 
