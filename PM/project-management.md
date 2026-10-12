@@ -14,6 +14,7 @@ Generated: 2026-10-12T22:06:35Z
 ## current/
 
 - [chore-002](current/chore-002.md)
+- [spike-001](current/spike-001.md)
 
 ## release-candidate-dev/
 
