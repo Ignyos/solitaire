@@ -23,6 +23,10 @@ The initial scaffold does not implement gameplay. Preserve the existing license.
 ## Architecture and safeguards
 
 - Use native HTML, CSS, and JavaScript without a compilation step. Keep deployed assets in `docs/`.
+- Follow `ARCHITECTURE.md` for code structure, the game contract, and the shared-code
+  catalog. Check the catalog before writing new helpers; update it with shared exports.
+- Follow the coding rules in `.github/instructions/` (JavaScript, CSS, HTML).
+- `REQUIREMENTS.md` owns application behavior.
 - `deploy-config.psd1` owns deployment targets. `main` is production; `dev` deploys only
   to the external dev repository. The tracked `docs/CNAME` must remain production-only.
 - Use `build.ps1` to validate. Use `dev-publish.ps1` and `release.ps1` for publishing,
