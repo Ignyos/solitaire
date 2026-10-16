@@ -9,33 +9,42 @@ Generated: 2026-10-12T23:39:40Z
 
 ## Status
 
-Ready for requirements discovery with the owner; no product decisions approved
-yet. Working branch: `spike-001-application-requirements`.
+Core requirements are documented and the narrowed scope is owner-approved;
+final baseline review is pending. Working branch:
+`spike-001-application-requirements`.
 
 ## Scope
 
-Design Solitaire application requirements through a human-in-the-middle
-interview. Capture owner-approved decisions, open questions, an initial release
-scope, and measurable acceptance criteria in a canonical requirements document.
-Do not infer the game variant, rules, platforms, or feature priorities from the
-repository name or the toolkit profile.
+Design Solitaire's application-wide and shared-core behavior, service
+boundaries, clean-code rules, and provisional architecture through a
+human-in-the-middle interview. Capture approved decisions, provisional
+implementation mechanisms, deferred decisions, and behavior-focused
+acceptance criteria in `REQUIREMENTS.md` and `ARCHITECTURE.md`.
 
 This is requirements design, not gameplay implementation or live deployment.
-Deployment readiness remains separately tracked in chore-002, paused for
-certificate provisioning.
+Klondike rules/options, detailed storage schema, presentation and gameplay
+accessibility, initial-release boundaries, and related game-specific details
+are deferred to follow-up design. Their deferral is not approval or rejection
+of any option. Deployment readiness remains separately tracked in chore-002,
+paused for certificate provisioning.
 
 ## Acceptance criteria
 
 - Interview the owner one focused question at a time before making consequential
   product or behavioral decisions.
-- Document approved game variant/rules, intended users/platforms, core play flow,
-  accessibility, persistence/offline expectations, and first-release boundaries.
-- Clearly distinguish approved requirements, deferred features, and open questions.
-- Define measurable acceptance criteria for the agreed initial scope.
-- Obtain explicit owner approval of the resulting requirements before promoting
-  this item or starting implementation.
+- Document approved application-wide and shared-core behavior, service
+  boundaries, clean-code rules, and provisional architecture.
+- Clearly distinguish approved behavior, provisional implementation details,
+  and decisions deferred to follow-up design.
+- Define a behavior-focused core acceptance checklist with observable outcomes.
+- Obtain explicit owner approval of the resulting core requirements before
+  promoting this item or starting implementation.
 
 ## Evidence / decisions
 
 - 2026-10-12: Owner requested a separate branch for application requirements
   design and approved recording this item on dev before creating its working branch.
+- 2026-10-16: Owner approved narrowing this spike to application-wide and
+  shared-core requirements, with game-specific rules, detailed storage schema,
+  presentation/accessibility, and initial-release boundaries deferred to
+  follow-up design.
