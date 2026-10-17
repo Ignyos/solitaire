@@ -9,9 +9,7 @@ Generated: 2026-10-12T23:39:40Z
 
 ## Status
 
-Core requirements are documented and the narrowed scope is owner-approved;
-final baseline review is pending. Working branch:
-`spike-001-application-requirements`.
+Owner-approved core requirements baseline; ready for dev-deploy verification.
 
 ## Scope
 
@@ -22,11 +20,13 @@ implementation mechanisms, deferred decisions, and behavior-focused
 acceptance criteria in `REQUIREMENTS.md` and `ARCHITECTURE.md`.
 
 This is requirements design, not gameplay implementation or live deployment.
-Klondike rules/options, detailed storage schema, presentation and gameplay
-accessibility, initial-release boundaries, and related game-specific details
-are deferred to follow-up design. Their deferral is not approval or rejection
-of any option. Deployment readiness remains separately tracked in chore-002,
-paused for certificate provisioning.
+Klondike rules/options, detailed storage schema, visual presentation and
+detailed gameplay accessibility, initial-release boundaries, and related
+game-specific details are deferred to follow-up design. Their deferral is not
+approval or rejection of any option. Rendering and animation architecture
+remain open; card drag-and-drop is required, and double-click move selection
+follows each game's rules. Deployment readiness remains separately tracked in
+chore-002, paused for certificate provisioning.
 
 ## Acceptance criteria
 
@@ -46,5 +46,9 @@ paused for certificate provisioning.
   design and approved recording this item on dev before creating its working branch.
 - 2026-10-16: Owner approved narrowing this spike to application-wide and
   shared-core requirements, with game-specific rules, detailed storage schema,
-  presentation/accessibility, and initial-release boundaries deferred to
-  follow-up design.
+  visual presentation/accessibility details, and initial-release boundaries
+  deferred to follow-up design.
+- 2026-10-17: Owner approved the core requirements baseline and promotion to
+  dev-deploy verification. Rendering/animation architecture remains open;
+  substantial card movement animation is desired, drag-and-drop is required,
+  and each game defines double-click move selection.
