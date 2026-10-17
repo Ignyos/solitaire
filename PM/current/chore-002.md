@@ -270,6 +270,16 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
   unavailable for each. Public CNAME targets and distinct Pages mappings are
   verified; no ownership warning was reported. HTTPS certificate issuance,
   enforcement, and trusted-certificate/redirect checks remain incomplete.
+- 2026-10-17T21:42Z Gate 3 read-only recheck: GitHub Pages API reports both
+  configured domains and expected sources (production `main`/`docs`, dev
+  `main`/root), certificates `approved` through 2027-01-10, and
+  `https_enforced=false`; both report `protected_domain_state=unverified`.
+  Public DNS resolves both CNAMEs to `ignyos.github.io`, and HTTPS requests
+  succeed but return 404, so neither is a live application verification.
+  Owner confirmed `ignyos.com` was verified under the Ignyos organization;
+  the API still reports unverified. Owner chose to pause and resolve this
+  discrepancy before enabling HTTPS enforcement. No Pages or DNS settings
+  were changed.
 - 2026-10-12: Owner paused deployment readiness while certificates provision and
   authorized preserving all progress locally: commit PM evidence on dev,
   fast-forward chore-002-deployment-setup to retain it, then track requirements
