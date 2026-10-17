@@ -22,9 +22,9 @@ PM branch guidance enabled. Establish a static browser/PWA starter, not gameplay
 
 ## Status
 
-Implementation and local acceptance verification finished. Developer explicitly
-approved moving this item to release-candidate-dev on 2026-10-12. This confirms
-the local bootstrap only, not external deployment readiness.
+Implementation and local acceptance verification finished. Developer approved
+promotion to release-candidate on 2026-10-17. This confirms the local bootstrap
+only, not external deployment readiness.
 
 ## Acceptance verification
 
@@ -76,3 +76,9 @@ not verified or provisioned. Gameplay is explicitly outside this bootstrap.
 Live Actions/deployments, production custom domain/DNS/HTTPS, and
 DEV_PAGES_REPO/DEV_PAGES_TOKEN configuration are **not complete**. Follow-up
 deployment work requires a separately tracked chore and explicit human checkpoints.
+
+## Promotion evidence
+
+- 2026-10-17: Developer confirmed this item is ready to promote from
+  release-candidate-dev to release-candidate. External deployment readiness
+  remains outside this item and tracked separately in chore-002.

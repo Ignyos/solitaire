@@ -9,7 +9,8 @@ Generated: 2026-10-12T23:39:40Z
 
 ## Status
 
-Owner-approved core requirements baseline; ready for dev-deploy verification.
+Owner-approved core requirements baseline; developer approved promotion to
+release-candidate on 2026-10-17.
 
 ## Scope
 
@@ -52,3 +53,5 @@ chore-002, paused for certificate provisioning.
   dev-deploy verification. Rendering/animation architecture remains open;
   substantial card movement animation is desired, drag-and-drop is required,
   and each game defines double-click move selection.
+- 2026-10-17: Developer confirmed this item is ready to promote from
+  release-candidate-dev to release-candidate.
