@@ -176,8 +176,13 @@ Klondike confirms it.
 - Changing an option on a game's home page immediately updates that game's
   last-selected settings, even if the player leaves without starting a deal.
 
-## 4. Gameplay and undo
+## 4. Gameplay, interaction, and undo
 
+- Drag-and-drop is a required way to move cards on the board. Tap/click
+  selection followed by choosing a destination is not a substitute for it.
+- Double-clicking a card is supported. When a move is available for that card,
+  the game applies an available move; each game's rules define the decision
+  logic for choosing which move.
 - Every game supports undo for 100% of the user's actions in an attempt; do not
   impose a smaller fixed undo-history limit.
 - An undo step is any individual action taken by the user.
@@ -453,15 +458,16 @@ Defaults:
   details go to the browser console.
 
 **Open:** define supported viewport sizes, portrait/landscape behavior, card
-readability, tableau overflow/scrolling, pointer/touch interaction, and keyboard
+readability, tableau overflow/scrolling, drag-and-drop details, and keyboard
 and assistive-technology requirements.
 
-**Discussion starting point, not approved:**
+The desired presentation includes substantial card movement animation, such as
+cards moving between board locations while pile ordering changes. Evaluate
+whether each rendering approach can deliver the desired transitions before
+choosing one. No renderer or animation architecture is selected.
 
-- Prefer HTML/DOM card elements with CSS layout and lightweight transforms for
-  this turn-based application. DOM offers direct focus, semantic labels, and
-  responsive styling; canvas requires a separate accessible interaction model.
-  Consider Phaser only if demonstrated interaction/animation needs justify it.
+**Discussion topics, not approved:**
+
 - Evaluate phone portrait/landscape, tablet portrait/landscape, and desktop.
   Candidate test widths: 320, 375, 768, 1024, and 1440 CSS pixels, with explicit
   short-height landscape tests. These are proposed targets, not agreed limits.
@@ -470,8 +476,6 @@ and assistive-technology requirements.
 - Preserve readable rank/suit indicators; use controlled board scrolling when
   a game's minimum readable layout cannot fit. Decide per game whether vertical,
   horizontal, or no scrolling is appropriate, with the menu kept reachable.
-- Support tap/click selection then destination as a non-drag alternative.
-  Drag-and-drop can supplement it, not be the only touch/pointer input.
 - Target at least 44 by 44 CSS pixels for primary controls. Overlapping cards
   need separate hit-area/selection design rather than claiming every exposed
   card fragment meets that size.
@@ -520,8 +524,9 @@ or rejection of any option.
   and the game implementation guide details.
 - Detailed IndexedDB record fields, indexes, and exact repository API
   signatures (reserved for a separate storage-schema discussion).
-- Presentation: renderer, viewport/portrait-landscape targets, card
-  readability and scrolling, board input, and gameplay accessibility.
+- Presentation: renderer and animation architecture, viewport/portrait-landscape
+  targets, card readability and scrolling, drag-and-drop details, and gameplay
+  accessibility.
 - In-game menu placement and appearance.
 - Exact installation-help instructions and platform-specific wording.
 - About attribution URL and release-notes presentation.
@@ -546,6 +551,7 @@ the open decisions above must supply exact rules and measurable thresholds.
 | Home during play | Returning Home retains progress saved per move/choice; its game history offers Resume. |
 | Finished history | A finished attempt shows its deal index, selected options, and won/forfeited outcome and offers Retry. |
 | Retry options | Retry recreates the original layout with the same options as the retried attempt; each attempt retains its own recorded options. |
+| Board interaction | Cards can be moved by drag-and-drop. Double-clicking a card performs an available move according to that game's rules. |
 | Notifications | Messages appear as stacked cards with type color plus icon/label, animate per the animation setting, pause while hovered/focused, auto-dismiss after the configured time (except action-required errors), never cover the menu, and can be closed early with an X. |
 | Session undo | Every individual user action in the attempt can be undone until the attempt is won or forfeited. |
 | Undo persistence | Leaving a game, closing, reloading, or updating, then resuming, still allows undoing every prior action of the attempt. |
@@ -724,6 +730,12 @@ the open decisions above must supply exact rules and measurable thresholds.
   shared-core requirements. Klondike-specific rules, detailed storage schema,
   presentation, and related feature details are explicitly deferred to
   follow-up design rather than blocking this scope.
+- 2026-10-17: Owner kept rendering and animation architecture open, noting the
+  desired presentation includes substantial card movement transitions as cards
+  move between locations and pile ordering changes. Drag-and-drop is required;
+  tap/click selection followed by choosing a destination is not a substitute.
+  Double-clicking a card performs an available move according to game-specific
+  decision rules.
 - 2026-10-14: Owner approved a minimal theme contract: CSS custom-property
   tokens, a default theme, optional token-only theme overrides, and a validated
   application setting when multiple themes are offered; no theme framework.
