@@ -13,10 +13,8 @@ Generated: 2026-10-12T22:49:10Z
 excluded from the locally approved bootstrap. No steps below have been performed
 by creating this file.
 
-**Paused by owner:** Gate 3 is awaiting GitHub Pages certificate provisioning
-for both custom domains. Resume by inspecting certificate status read-only,
-then asking separately before enabling HTTPS on each site. Gates 4-6 remain
-pending; neither deployment nor this item is complete.
+Gate 3 domain verification and HTTPS enforcement are complete for both custom
+domains. Gates 4-6 remain pending; neither deployment nor this item is complete.
 
 Working branch: `chore-002-deployment-setup`.
 Dependency: approved bootstrap commit `b5d4001` on `chore-001-bootstrap`. This
@@ -103,7 +101,7 @@ and desired values first; never overwrite unrelated DNS records.
   of production.
 - [x] Read-only DNS/Pages checks confirm each hostname points to its intended
   Pages repository with no lane crossover.
-- [ ] After GitHub's certificate provisioning completes, separately approve
+- [x] After GitHub's certificate provisioning completes, separately approve
   enabling HTTPS enforcement for each site. Verify trusted certificates and
   HTTP-to-HTTPS behavior on both domains.
 
@@ -289,6 +287,13 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
   whose HTTPS request succeeded but returned 404 (site content is not deployed).
   Dev HTTPS enforcement remains off and requires separate approval. Gate 3's
   combined HTTPS acceptance remains unchecked until both sites pass.
+- 2026-10-17T22:29Z Gate 3: Owner separately approved enabling HTTPS enforcement
+  for `solitaire-dev.ignyos.com`. GitHub Pages read-back reports
+  `protected_domain_state=verified`, certificate `approved`, and
+  `https_enforced=true` for both production and dev. HTTPS requests to both
+  domains completed with HTTP 404 (no site content is deployed); HTTP requests
+  to both resolve to the HTTPS URL. Both domains pass the Gate 3 TLS/redirect
+  check; live content verification remains in Gate 4 and has not been claimed.
 - 2026-10-12: Owner paused deployment readiness while certificates provision and
   authorized preserving all progress locally: commit PM evidence on dev,
   fast-forward chore-002-deployment-setup to retain it, then track requirements
