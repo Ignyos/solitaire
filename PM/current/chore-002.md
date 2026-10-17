@@ -280,6 +280,15 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
   the API still reports unverified. Owner chose to pause and resolve this
   discrepancy before enabling HTTPS enforcement. No Pages or DNS settings
   were changed.
+- 2026-10-17T22:18Z Gate 3: Public DNS returned the GitHub Pages verification
+  TXT record `_github-pages-challenge-Ignyos.ignyos.com`. Read-only Pages API
+  recheck then reported `protected_domain_state=verified` and approved
+  certificates for both production and dev. Owner separately approved enabling
+  HTTPS enforcement for production only. Read-back confirmed production
+  `https_enforced=true`; HTTP returned 301 to `https://solitaire.ignyos.com/`,
+  whose HTTPS request succeeded but returned 404 (site content is not deployed).
+  Dev HTTPS enforcement remains off and requires separate approval. Gate 3's
+  combined HTTPS acceptance remains unchecked until both sites pass.
 - 2026-10-12: Owner paused deployment readiness while certificates provision and
   authorized preserving all progress locally: commit PM evidence on dev,
   fast-forward chore-002-deployment-setup to retain it, then track requirements
