@@ -5,7 +5,37 @@ Commit: 0c9e12c7b9fd60e297e690b5a3943edabe8dc868
 Profile: vanilla-js-github-pages-spa
 Generated: 2026-10-12T22:06:35Z
 -->
-# Release notes
+# Release 2026-10-18-15-34
 
-No production release has been prepared. Replace this body from release diff
-evidence at the interactive release gate; follow `RELEASE_NOTES_STYLE.md`.
+## Overview
+
+This initial release introduces the Solitaire splash/home page and browser
+application foundation. Gameplay and additional application pages are not
+implemented.
+
+## New Features
+
+- **Home page**: Adds Ignyos branding, a card icon, and a clear notice that
+  gameplay is not yet available.
+- **Offline access**: Caches the splash page and its assets after a successful
+  online load so the page can reopen offline in a compatible browser.
+- **Offline status**: Shows when offline support is ready or cannot initialize.
+- **Preview identification**: Displays a developer-preview banner on
+  non-production hosts, excluding local previews.
+
+## Installation
+
+Open https://solitaire.ignyos.com/ in your browser. Load the page online and
+wait for "Offline support is ready." before using it offline.
+
+## Requirements
+
+- A modern browser with JavaScript enabled for offline support.
+- HTTPS and browser support for service workers and Cache Storage for offline
+  access.
+
+## Documentation
+
+See the [README](README.md) for local setup and deployment information.
+The [application requirements](REQUIREMENTS.md) describe planned behavior, not
+features implemented in this release.

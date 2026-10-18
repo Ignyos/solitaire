@@ -82,3 +82,6 @@ deployment work requires a separately tracked chore and explicit human checkpoin
 - 2026-10-17: Developer confirmed this item is ready to promote from
   release-candidate-dev to release-candidate. External deployment readiness
   remains outside this item and tracked separately in chore-002.
+
+## Production release
+Included in 2026-10-18-15-34.

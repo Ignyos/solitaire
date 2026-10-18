@@ -55,3 +55,6 @@ chore-002, paused for certificate provisioning.
   and each game defines double-click move selection.
 - 2026-10-17: Developer confirmed this item is ready to promote from
   release-candidate-dev to release-candidate.
+
+## Production release
+Included in 2026-10-18-15-34.
