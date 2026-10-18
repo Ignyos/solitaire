@@ -9,18 +9,15 @@ Generated: 2026-10-12T22:49:10Z
 
 ## Status and scope
 
-**Not complete.** This checklist tracks the external setup and live verification
-excluded from the locally approved bootstrap. No steps below have been performed
-by creating this file.
-
-Gate 3 domain verification and HTTPS enforcement are complete for both custom
-domains. Gates 4-6 remain pending; neither deployment nor this item is complete.
+Developer accepted deployment readiness for the splash/home-page-only release
+on 2026-10-18 and approved promotion to release-candidate-dev. Both live sites,
+deployment workflows, release metadata, and offline reloads are verified.
+Gameplay and cross-browser installation verification are outside this slice.
 
 Working branch: `chore-002-deployment-setup`.
-Dependency: approved bootstrap commit `b5d4001` on `chore-001-bootstrap`. This
-branch is based on that unmerged implementation branch. Integrate the bootstrap
-before or alongside this chore; do not assume local `dev` or remote `main`
-already contains it.
+Dependency: approved bootstrap commit `b5d4001`, now integrated into both dev
+and main. PM housekeeping is recorded on dev. The original chore branch is
+retained; its final retention/deletion decision remains pending.
 
 Canonical target values come from `../../deploy-config.psd1`.
 Publishing behavior and setup instructions are in `../../README.md`;
@@ -111,21 +108,21 @@ leave the affected box unchecked and stop for the owner's decision.
 
 ## Gate 4: Live development deployment and verification
 
-- [ ] Confirm remote `dev` and the working tree are in the intended state; run
+- [x] Confirm remote `dev` and the working tree are in the intended state; run
   the existing build validation without adding new tooling.
-- [ ] Review **every** `release-candidate-dev/` item through the real dev-publish
+- [x] Review **every** `release-candidate-dev/` item through the real dev-publish
   checkpoint. For each, relay the promote/demote question, request evidence, and
   ask the demotion destination if needed. Approval of chore-001's local bootstrap
   is not proof of live verification.
-- [ ] Obtain explicit permission for the real dev publish commit/push, then run
+- [x] Obtain explicit permission for the real dev publish commit/push, then run
   `dev-publish.ps1` on `dev`. Respect the UTC-minute guard; do not bypass it.
-- [ ] Observe the corresponding Deploy Dev Site Actions run to success and
+- [x] Observe the corresponding Deploy Dev Site Actions run to success and
   inspect its published repository/SHA. A successful local script alone is insufficient.
-- [ ] Verify the external repository's deployed CNAME is the dev hostname and
+- [x] Verify the external repository's deployed CNAME is the dev hostname and
   the source repository's tracked CNAME is still production-only.
-- [ ] Open the actual HTTPS dev domain. Confirm the starter is served and the
+- [x] Open the actual HTTPS dev domain. Confirm the starter is served and the
   DEVELOPER PREVIEW banner renders there, rather than relying on injected-host tests.
-- [ ] Confirm versioned HTML assets and worker cache match the published version;
+- [x] Confirm versioned HTML assets and worker cache match the published version;
   register the worker online and reload the dev page offline.
 
 Completion evidence: Actions run URL, deployment SHA/version, actual dev URL,
@@ -133,22 +130,22 @@ banner observation, and live/offline browser results. Gameplay remains out of sc
 
 ## Gate 5: Production integration and release
 
-- [ ] Ask the owner which verified dev changes are approved for production and
+- [x] Ask the owner which verified dev changes are approved for production and
   use the selected PR/review policy to integrate them into `main`.
-- [ ] Verify the intended remote `main` contains the production CNAME and
+- [x] Verify the intended remote `main` contains the production CNAME and
   approved code, with no dev CNAME or deployment artifacts committed.
-- [ ] Obtain explicit permission to run a real release on clean `main`. Confirm
+- [x] Obtain explicit permission to run a real release on clean `main`. Confirm
   the exact production candidates and previous-completed cleanup before preparation.
-- [ ] At the AI notes gate, read the generated diff, release items, and style
+- [x] At the AI notes gate, read the generated diff, release items, and style
   guide. Produce factual timestamp release notes without claiming gameplay or
   deployment success not established by evidence.
-- [ ] Present the proposed notes and exact release timestamp to the owner;
+- [x] Present the proposed notes and exact release timestamp to the owner;
   enter the script's commit/tag confirmation only after explicit owner approval.
-- [ ] Observe the branch/tag push and the Create Release workflow to success.
+- [x] Observe the branch/tag push and the Create Release workflow to success.
   Verify the GitHub Release body uses the approved notes and attaches the matching audit.
-- [ ] Open the actual production HTTPS domain. Confirm intended assets/version
+- [x] Open the actual production HTTPS domain. Confirm intended assets/version
   are served, no developer banner is shown, and the hostname/certificate are correct.
-- [ ] Verify production worker registration and offline reload, and reconfirm the
+- [x] Verify production worker registration and offline reload, and reconfirm the
   dev site remains a separate preview after the production release.
 
 Completion evidence: reviewed integration, production SHA/tag, Actions run URL,
@@ -156,20 +153,45 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
 
 ## Gate 6: Final acceptance and handoff
 
-- [ ] All gate results and remaining limitations are recorded without secrets.
-- [ ] Owner explicitly confirms both live deployments, Actions, production/dev
+- [x] All gate results and remaining limitations are recorded without secrets.
+- [x] Owner explicitly confirms both live deployments, Actions, production/dev
   domains, DNS/HTTPS, and development credential configuration are complete.
-- [ ] Ask for this item's completion confirmation per `../workflow.md`; only
+- [x] Ask for this item's completion confirmation per `../workflow.md`; only
   then update the item and lifecycle index and perform the authorized move.
 - [ ] Ask whether to merge the chore branch using the review policy, then
   whether to retain or delete it. Do not merge or delete automatically.
 
 ## Evidence / owner decisions
 
+- 2026-10-18 Gate 4: Owner ran dev-publish.ps1 and reported success. Deploy Dev
+  Site run https://github.com/Ignyos/solitaire/actions/runs/39139832453 succeeded
+  for source c971ab63ed7246ec4ba7f75dc32710d9b4dd68d3, including build validation.
+  Dev deployment commit was 4641f63fb31dc4505cc98d7194df6a29d86e78b8.
+  No release-candidate-dev items remained at publishing time. Actual dev
+  scripts, worker, and cache matched 2026-10-18-15-17; preview banner and
+  offline reload passed. Deployed CNAME was dev-only; source CNAME remained
+  production-only. After the approved CNAME conflict resolution, run
+  https://github.com/Ignyos/solitaire/actions/runs/39140788773 also succeeded.
+- 2026-10-18 Gate 5: Owner approved splash/home-page-only production scope,
+  opening PR #2, resolving its CNAME newline conflict, and merging it.
+  https://github.com/Ignyos/solitaire/pull/2 merged at
+  746fd365dec1f6fefa0e633e636cbf94d10b76bc. Owner ran the interactive release,
+  requested diff-grounded notes, and completed the commit/tag/push gate.
+  Release 2026-10-18-15-34 is at b76ce970cd96106681f976b55fa7a982439611a6.
+  Create Release run https://github.com/Ignyos/solitaire/actions/runs/39141396592
+  and Pages run https://github.com/Ignyos/solitaire/actions/runs/39141396170
+  succeeded. https://github.com/Ignyos/solitaire/releases/tag/2026-10-18-15-34
+  contains the approved notes and rel-2026-10-18-15-34.txt attachment.
+  Production HTTPS scripts, controller, and cache matched that version;
+  no preview banner appeared and offline reload passed. Dev still displayed
+  its separate preview banner. Both repository CNAME values remain lane-correct.
+- 2026-10-18 Gate 6: Owner confirmed deployment acceptance for this slice and
+  approved syncing dev to released main and moving this item to
+  release-candidate-dev. Gameplay and cross-browser installation were not
+  covered. Chore branch cleanup remains a separate owner decision.
 - 2026-10-12: Owner explicitly stated external setup is not complete and requested
   this human-gated follow-up checklist. Owner authorized committing the approved
   local bootstrap, then creating and switching to this next chore branch.
-- Pending: gates 1-6. No real deployment or external setup is implied by this checklist.
 - 2026-10-12 Gate 1: Read-only GitHub inspection confirmed admin/push access,
   remote main at 032ff83284c4dc5a882e7f5aa7de5315d6234815, no remote dev,
   no protected branches, and no repository rulesets. Owner chose pull requests
