@@ -331,3 +331,6 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
 ## Dev checkpoint 2026-10-21-23-03
 the evidence has been verified
 Decision: release-candidate.
+
+## Production release
+Included in 2026-10-21-23-35.
