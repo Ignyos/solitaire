@@ -158,11 +158,17 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
   domains, DNS/HTTPS, and development credential configuration are complete.
 - [x] Ask for this item's completion confirmation per `../workflow.md`; only
   then update the item and lifecycle index and perform the authorized move.
-- [ ] Ask whether to merge the chore branch using the review policy, then
+- [x] Ask whether to merge the chore branch using the review policy, then
   whether to retain or delete it. Do not merge or delete automatically.
 
 ## Evidence / owner decisions
 
+- 2026-10-21: Owner approved merging chore-002 and chose to delete its local
+  working branch. Read-only comparison confirmed branch commit
+  35694b09c49826a28f58c275275d5c1355c7071b was already an ancestor of dev at
+  8d88bd9f24fcb6639f43c7b1ce7033993d42aeeb; there was no separate diff or
+  remote chore branch/PR to merge. Deleted the local branch with `git branch
+  -d`; no code changes were needed.
 - 2026-10-18 Gate 4: Owner ran dev-publish.ps1 and reported success. Deploy Dev
   Site run https://github.com/Ignyos/solitaire/actions/runs/39139832453 succeeded
   for source c971ab63ed7246ec4ba7f75dc32710d9b4dd68d3, including build validation.
