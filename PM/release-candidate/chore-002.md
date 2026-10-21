@@ -321,3 +321,7 @@ GitHub Release URL, production domain/HTTPS/banner/version/offline results.
   fast-forward chore-002-deployment-setup to retain it, then track requirements
   design as spike-001 and create its separate working branch. No additional
   pushes, deployments, HTTPS changes, or main integration were authorized.
+
+## Dev checkpoint 2026-10-21-23-03
+the evidence has been verified
+Decision: release-candidate.

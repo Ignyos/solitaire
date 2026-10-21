@@ -17,11 +17,11 @@ Generated: 2026-10-12T22:06:35Z
 
 ## release-candidate-dev/
 
-- [chore-002](release-candidate-dev/chore-002.md)
+- (none)
 
 ## release-candidate/
 
-- (none)
+- [chore-002](release-candidate/chore-002.md)
 
 ## completed/
 
