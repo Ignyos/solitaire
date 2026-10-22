@@ -20,46 +20,21 @@ try {
     }
     $items = @(Get-PmItems -Root $PSScriptRoot -Folder 'release-candidate-dev')
     if ($WhatIfMode) {
-        Write-Host "[WhatIf] Stamp $version, review $($items.Count) dev candidates, commit and push dev. No changes made."
+        $candidateLabel = if ($items.Count -eq 1) { 'candidate remains' } else { 'candidates remain' }
+        Write-Host "[WhatIf] Stamp $version and publish docs to dev; $($items.Count) $candidateLabel unchanged. No changes made."
         return
     }
 
-    $decisions = @()
-    foreach ($item in $items) {
-        Write-Host (Get-Content -LiteralPath $item.FullName -Raw)
-        $choice = Read-Host "$($item.BaseName): did this get verified? [P]romote to release-candidate, [D]emote, or [C]ancel"
-        $choice = ([string]$choice).Trim().ToUpperInvariant()
-        if ($choice -eq 'C') { throw 'Dev publish cancelled; no changes made.' }
-        if ($choice -notin @('P', 'D')) {
-            throw 'Invalid choice. Enter P to promote, D to demote, or C to cancel; no changes made.'
-        }
-        $destination = 'release-candidate'
-        if ($choice -eq 'D') {
-            $destinationChoice = Read-Host 'Demote to [C]urrent or [B]acklog?'
-            $destinationChoice = ([string]$destinationChoice).Trim().ToUpperInvariant()
-            $destination = switch ($destinationChoice) {
-                'C' { 'current' }
-                'B' { 'backlog' }
-                default { throw 'Invalid demotion destination. Enter C for current or B for backlog; no changes made.' }
-            }
-        }
-        $feedback = Read-Host 'Verification evidence or demotion feedback (required)'
-        if ([string]::IsNullOrWhiteSpace($feedback)) { throw 'Checkpoint evidence is required; no changes made.' }
-        $target = Join-Path $PSScriptRoot "PM\$destination\$($item.Name)"
-        if (Test-Path $target) { throw "Duplicate PM item at destination: $target" }
-        $decisions += @{ Item = $item; Destination = $destination; Feedback = $feedback }
+    $confirmation = Read-Host 'You are about to publish to dev. Continue? [Y]es/[N]o (default No)'
+    $confirmation = ([string]$confirmation).Trim().ToUpperInvariant()
+    if ($confirmation -notin @('Y', 'YES')) {
+        if ($confirmation -in @('', 'N', 'NO')) { throw 'Dev publish cancelled; no changes made.' }
+        throw 'Invalid confirmation. Enter Yes or No; no changes made.'
     }
     Assert-CleanTree
-    foreach ($decision in $decisions) {
-        Add-Content -LiteralPath $decision.Item.FullName -Value "`n## Dev checkpoint $version`n$($decision.Feedback)`nDecision: $($decision.Destination)." -Encoding utf8
-        Move-PmItem -Root $PSScriptRoot -Item $decision.Item -Destination $decision.Destination
-    }
-    if ($decisions.Count -gt 0) { Update-PmIndex -Root $PSScriptRoot }
     Set-PublishVersion -Root $PSScriptRoot -Version $version
     & (Join-Path $PSScriptRoot 'build.ps1')
-    $paths = @('docs')
-    if ($decisions.Count -gt 0) { $paths += 'PM' }
-    Invoke-RepositoryGit -Arguments (@('add', '--') + $paths)
+    Invoke-RepositoryGit -Arguments @('add', '--', 'docs')
     $staged = Invoke-RepositoryGit -Arguments @('diff', '--cached', '--name-only') -Capture
     if (-not $staged) { throw 'Nothing changed; wait for a new UTC minute before republishing.' }
     Invoke-RepositoryGit -Arguments @('commit', '-m', "chore: dev publish $version", '-m',

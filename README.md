@@ -62,18 +62,20 @@ PREVIEW**; localhost, loopback, file previews, and the exact production hostname
 
 Merge confirmed implementation branches into `dev` using the review policy chosen
 by the developer. Start with a clean tree. Run `.\dev-publish.ps1`.
-The script reviews every `release-candidate-dev/` item with explicit promote/demote
-input and evidence. At each item, enter `P` to promote it to `release-candidate/`,
-`D` to demote it, or `C` to cancel. Demotion asks for `C` (current) or `B`
-(backlog). Choices ignore case and surrounding whitespace. The script gathers
-all decisions and non-empty evidence before applying any PM changes; a canceled
-or invalid choice leaves the files unchanged. After the checkpoint, it updates
-the index, stamps assets/cache, validates, commits, and pushes only `dev`. No
-other PM transitions are allowed.
+After validation, the script asks once: `You are about to publish to dev. Continue?
+[Y]es/[N]o (default No)`. Enter `Y`/`Yes` to authorize publishing, or `N`/`No`
+or press Enter to cancel. Input is case-insensitive and ignores surrounding
+whitespace; invalid input also cancels without changes. This confirmation
+authorizes the deployment only: the script does not request per-item evidence or
+move, edit, or promote/demote candidates. Every `release-candidate-dev/` item
+stays there after a successful publish; any lifecycle transition is a separate
+PM change. After confirmation, the script stamps assets/cache, validates,
+commits, and pushes only `dev`.
 
-`-WhatIfMode` is read-only and still enforces the dev branch gate.
-`-NoPush` creates a local commit but does not deploy. The dev candidate checkpoint
-is a human verification gate for the upcoming deploy, not proof that the push succeeded.
+`-WhatIfMode` is read-only and still enforces the dev branch gate; it does not
+prompt. The publish confirmation is not evidence that the push or deployment
+succeeded, nor verification of any candidate item.
+`-NoPush` creates a local commit but does not deploy.
 Repeated publishes in the same UTC minute are rejected, even for PM-only changes,
 so every real publish gets a fresh cache identity.
 
