@@ -68,12 +68,12 @@ inside it; verification is not a side door for growing the item.
 
 - Adding an item to `release-candidate-dev/` creates an expectation that a dev build/deploy is
   coming next.
-- Every dev deploy reviews **every** item currently in `release-candidate-dev/`. For each, ask
-  directly: "did this get verified? Promote to `release-candidate/`, or demote?"
-- A demoted item's target (`current/` or `backlog/`) is decided in the moment by asking -- there is
-  no fixed rule for which one applies.
-- This checkpoint is a blocking step inside the dev-publish script itself, using the standard
-  script-prompt / actor-input loop.
+- Before publishing, `dev-publish.ps1` asks once: "You are about to publish to dev. Continue?"
+  Yes authorizes the publish; No or empty input (the default) cancels without changes.
+- This confirmation authorizes deployment only. The script does not ask for per-item evidence,
+  promote or demote items, or otherwise change PM state. Every item remains in
+  `release-candidate-dev/` after a successful publish.
+- Any later lifecycle transition is a separate PM change, not part of dev publishing.
 
 ## Production release
 
@@ -86,9 +86,9 @@ inside it; verification is not a side door for growing the item.
 - The release script may use both the raw diff and the `release-candidate/` item files together to
   ground release-notes generation.
 
-## Dev deploys never touch PM state outside the checkpoint above
+## Dev deploys never change PM state
 
-No other PM folder transition happens on a dev deploy.
+Dev publishing changes deployed assets only. PM files and lifecycle folders remain untouched.
 
 ## Optional: branch discipline
 
