@@ -9,7 +9,8 @@ Generated: 2026-10-12T22:06:35Z
 
 ## Status
 
-Ready for implementation.
+Implementation is merged into `dev` and awaits dev-publish verification
+before promotion to the production release candidate.
 
 ## Scope
 
@@ -35,3 +36,12 @@ preserving explicit verification decisions, evidence, and cancellation safety.
 - Preserve review of every `release-candidate-dev/` item and existing duplicate
   destination, clean-tree, version-stamp, and build safeguards.
 - Do not commit or push a dev publish as part of this work.
+
+## Verification evidence
+
+- PowerShell parser accepted `dev-publish.ps1`; `build.ps1` passed.
+- Disposable repository checks covered promotion, demotion to both `current`
+  and `backlog`, cancellation, invalid choices, and empty evidence. No fixture
+  was pushed and no live dev publish was run.
+- PR #4 merged into `dev` at `a50074c732506fd1e8a262075c784f2db3057870`
+  on 2026-10-22.

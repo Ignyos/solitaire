@@ -13,11 +13,11 @@ Generated: 2026-10-12T22:06:35Z
 
 ## current/
 
-- [chore-004](current/chore-004.md)
+- (none)
 
 ## release-candidate-dev/
 
-- (none)
+- [chore-004](release-candidate-dev/chore-004.md)
 
 ## release-candidate/
 
