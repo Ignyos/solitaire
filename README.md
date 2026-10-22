@@ -86,8 +86,11 @@ The audit compares the previous reachable timestamp release tag (or the empty
 tree for the first release) against the prepared tree, including version and PM
 changes. Notes and historical audit files are excluded to prevent recursive diffs.
 The emitted AI directive grounds notes in that evidence and the
-[style guide](RELEASE_NOTES_STYLE.md). Update notes in another terminal/editor
-while the script waits, then type the exact release confirmation.
+[style guide](RELEASE_NOTES_STYLE.md); the script copies it to the clipboard for
+pasting into the AI prompt. If clipboard access fails, the directive is printed
+for manual copying. Update notes in another terminal/editor while the script
+waits, then enter `R` to release or `C` to cancel; the choice is
+case-insensitive.
 
 If code or HEAD changes during the notes gate, the script aborts rather than
 tagging unreviewed contents. Approved notes/audit are committed, a bare timestamp
