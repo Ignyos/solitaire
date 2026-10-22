@@ -4,7 +4,7 @@
 // Profile: vanilla-js-github-pages-spa
 // Generated: 2026-10-12T22:06:35Z
 'use strict';
-const CACHE_NAME = 'solitaire-v2026-10-22-00-42';
+const CACHE_NAME = 'solitaire-v2026-10-22-23-10';
 const VERSION = CACHE_NAME.slice('solitaire-v'.length);
 const ASSETS = ['./', './index.html', './styles.css', './main.js',
   './dev-site-banner.js', './manifest.webmanifest', './icon.svg']
