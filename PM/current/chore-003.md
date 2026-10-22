@@ -7,6 +7,12 @@ Generated: 2026-10-12T22:06:35Z
 -->
 # chore-003: Simplify production release prompts
 
+## Status
+
+Implementation is complete and developer-confirmed on working branch
+`chore-003`. Awaiting review and integration into `dev` before moving to the
+dev-publish verification checkpoint.
+
 ## Scope
 
 Make the production release notes handoff and final confirmation easier to use
@@ -33,3 +39,13 @@ without weakening the existing release safeguards.
 - Preserve the clean-tree and main-branch gates, timestamp identity, release
   audit, PM lifecycle transitions, and atomic push behavior.
 - Do not run a live release as part of this work.
+
+## Verification evidence
+
+- PowerShell parser accepted `release.ps1`.
+- `build.ps1` passed.
+- Focused prompt checks confirmed R/r proceed, C/c and invalid input stop,
+  clipboard success reports and copies the directive, and clipboard failure
+  reports the error and prints the directive for manual copying.
+- Implementation commit: `21264a6`.
+- No live release or real system clipboard operation was performed.
