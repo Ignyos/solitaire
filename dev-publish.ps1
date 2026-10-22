@@ -27,13 +27,21 @@ try {
     $decisions = @()
     foreach ($item in $items) {
         Write-Host (Get-Content -LiteralPath $item.FullName -Raw)
-        $choice = Read-Host "$($item.BaseName): did this get verified? Promote to release-candidate, or demote? [promote/demote/cancel]"
-        if ($choice -eq 'cancel') { throw 'Dev publish cancelled; no changes made.' }
-        if ($choice -notin @('promote', 'demote')) { throw 'Explicit promote or demote is required; no changes made.' }
+        $choice = Read-Host "$($item.BaseName): did this get verified? [P]romote to release-candidate, [D]emote, or [C]ancel"
+        $choice = ([string]$choice).Trim().ToUpperInvariant()
+        if ($choice -eq 'C') { throw 'Dev publish cancelled; no changes made.' }
+        if ($choice -notin @('P', 'D')) {
+            throw 'Invalid choice. Enter P to promote, D to demote, or C to cancel; no changes made.'
+        }
         $destination = 'release-candidate'
-        if ($choice -eq 'demote') {
-            $destination = Read-Host 'Demote to current or backlog? [current/backlog]'
-            if ($destination -notin @('current', 'backlog')) { throw 'Explicit demotion destination is required.' }
+        if ($choice -eq 'D') {
+            $destinationChoice = Read-Host 'Demote to [C]urrent or [B]acklog?'
+            $destinationChoice = ([string]$destinationChoice).Trim().ToUpperInvariant()
+            $destination = switch ($destinationChoice) {
+                'C' { 'current' }
+                'B' { 'backlog' }
+                default { throw 'Invalid demotion destination. Enter C for current or B for backlog; no changes made.' }
+            }
         }
         $feedback = Read-Host 'Verification evidence or demotion feedback (required)'
         if ([string]::IsNullOrWhiteSpace($feedback)) { throw 'Checkpoint evidence is required; no changes made.' }

@@ -63,8 +63,13 @@ PREVIEW**; localhost, loopback, file previews, and the exact production hostname
 Merge confirmed implementation branches into `dev` using the review policy chosen
 by the developer. Start with a clean tree. Run `.\dev-publish.ps1`.
 The script reviews every `release-candidate-dev/` item with explicit promote/demote
-input and evidence, updates the index, stamps assets/cache, validates, commits,
-and pushes only `dev`. No other PM transitions are allowed.
+input and evidence. At each item, enter `P` to promote it to `release-candidate/`,
+`D` to demote it, or `C` to cancel. Demotion asks for `C` (current) or `B`
+(backlog). Choices ignore case and surrounding whitespace. The script gathers
+all decisions and non-empty evidence before applying any PM changes; a canceled
+or invalid choice leaves the files unchanged. After the checkpoint, it updates
+the index, stamps assets/cache, validates, commits, and pushes only `dev`. No
+other PM transitions are allowed.
 
 `-WhatIfMode` is read-only and still enforces the dev branch gate.
 `-NoPush` creates a local commit but does not deploy. The dev candidate checkpoint
