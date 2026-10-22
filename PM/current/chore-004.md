@@ -7,6 +7,10 @@ Generated: 2026-10-12T22:06:35Z
 -->
 # chore-004: Simplify dev checkpoint choices
 
+## Status
+
+Ready for implementation.
+
 ## Scope
 
 Make the candidate decisions in `dev-publish.ps1` easier to enter while

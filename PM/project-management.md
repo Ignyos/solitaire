@@ -9,11 +9,11 @@ Generated: 2026-10-12T22:06:35Z
 
 ## backlog/
 
-- [chore-004](backlog/chore-004.md)
+- (none)
 
 ## current/
 
-- (none)
+- [chore-004](current/chore-004.md)
 
 ## release-candidate-dev/
 
