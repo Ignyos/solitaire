@@ -9,9 +9,8 @@ Generated: 2026-10-12T22:06:35Z
 
 ## Status
 
-Implementation is complete and developer-confirmed on working branch
-`chore-003`. Awaiting review and integration into `dev` before moving to the
-dev-publish verification checkpoint.
+Implementation is complete and integrated into `dev`. Awaiting dev-publish
+verification before promotion to the production release candidate.
 
 ## Scope
 
@@ -48,4 +47,6 @@ without weakening the existing release safeguards.
   clipboard success reports and copies the directive, and clipboard failure
   reports the error and prints the directive for manual copying.
 - Implementation commit: `21264a6`.
+- Merged into `dev` by PR #3 at `12a2720f994efa46d9386a5648e9776f66589760`
+  on 2026-10-22.
 - No live release or real system clipboard operation was performed.
