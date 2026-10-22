@@ -9,7 +9,7 @@ Generated: 2026-10-12T22:06:35Z
 
 ## backlog/
 
-- (none)
+- [chore-004](backlog/chore-004.md)
 
 ## current/
 
