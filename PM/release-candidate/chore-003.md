@@ -50,3 +50,7 @@ without weakening the existing release safeguards.
 - Merged into `dev` by PR #3 at `12a2720f994efa46d9386a5648e9776f66589760`
   on 2026-10-22.
 - No live release or real system clipboard operation was performed.
+
+## Dev checkpoint 2026-10-22-00-42
+verified
+Decision: release-candidate.
