@@ -9,8 +9,10 @@ Generated: 2026-10-12T22:06:35Z
 
 ## Status
 
-Implementation is merged into `dev` and awaits dev-publish verification
-before promotion to the production release candidate.
+Implementation was merged into `dev` through PR #4. Its per-item checkpoint
+behavior was subsequently replaced by chore-005 through PR #5. Retained here
+as a historical item; the original criteria below describe the delivered
+intermediate implementation, not the current publishing policy.
 
 ## Scope
 

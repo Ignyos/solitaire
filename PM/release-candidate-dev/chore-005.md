@@ -9,7 +9,9 @@ Generated: 2026-10-22T22:56:35Z
 
 ## Status
 
-Active. Revises the dev-publish checkpoint policy after chore-004.
+Implementation accepted by the developer and merged into `dev` through PR #5.
+Moved to `release-candidate-dev/` during owner-approved PM reconciliation on
+2026-10-23. Publishing does not automatically promote this item.
 
 ## Scope
 
@@ -35,3 +37,15 @@ in `release-candidate-dev/`; publishing does not change PM lifecycle state.
 - This changes dev-deploy authorization only; it does not automatically promote
   or demote candidates.
 - Do not commit or push a dev publish as part of this work.
+
+## Verification and integration
+
+- PowerShell parsing and `build.ps1` passed.
+- Disposable local Git fixture checks covered WhatIf, No, empty/default No,
+  invalid input, and Yes with `-NoPush`. Candidate content and the PM index
+  remained unchanged; the successful fixture publish committed only assets.
+- The developer approved the implementation for commit and PR review, then
+  authorized merging PR #5. It merged on 2026-10-22 at
+  `25fac2cb986e926711a47423998f36dff47500bb`.
+- A subsequent dev-publish commit, `c1e6232`, is present. That commit alone
+  does not establish successful hosted deployment or live verification.
