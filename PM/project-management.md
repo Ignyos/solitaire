@@ -22,10 +22,8 @@ Generated: 2026-10-12T22:06:35Z
 
 ## release-candidate/
 
-- [chore-002](release-candidate/chore-002.md)
-- [chore-003](release-candidate/chore-003.md)
+- (none)
 
 ## completed/
 
-- [chore-001](completed/chore-001.md)
-- [spike-001](completed/spike-001.md)
+- [chore-002](completed/chore-002.md)
