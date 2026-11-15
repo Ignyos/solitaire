@@ -17,7 +17,8 @@ Generated: 2026-10-12T22:06:35Z
 
 ## release-candidate-dev/
 
-- (none)
+- [chore-004](release-candidate-dev/chore-004.md)
+- [chore-005](release-candidate-dev/chore-005.md)
 
 ## release-candidate/
 

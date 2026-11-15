@@ -62,13 +62,20 @@ PREVIEW**; localhost, loopback, file previews, and the exact production hostname
 
 Merge confirmed implementation branches into `dev` using the review policy chosen
 by the developer. Start with a clean tree. Run `.\dev-publish.ps1`.
-The script reviews every `release-candidate-dev/` item with explicit promote/demote
-input and evidence, updates the index, stamps assets/cache, validates, commits,
-and pushes only `dev`. No other PM transitions are allowed.
+After validation, the script asks once: `You are about to publish to dev. Continue?
+[Y]es/[N]o (default No)`. Enter `Y`/`Yes` to authorize publishing, or `N`/`No`
+or press Enter to cancel. Input is case-insensitive and ignores surrounding
+whitespace; invalid input also cancels without changes. This confirmation
+authorizes the deployment only: the script does not request per-item evidence or
+move, edit, or promote/demote candidates. Every `release-candidate-dev/` item
+stays there after a successful publish; any lifecycle transition is a separate
+PM change. After confirmation, the script stamps assets/cache, validates,
+commits, and pushes only `dev`.
 
-`-WhatIfMode` is read-only and still enforces the dev branch gate.
-`-NoPush` creates a local commit but does not deploy. The dev candidate checkpoint
-is a human verification gate for the upcoming deploy, not proof that the push succeeded.
+`-WhatIfMode` is read-only and still enforces the dev branch gate; it does not
+prompt. The publish confirmation is not evidence that the push or deployment
+succeeded, nor verification of any candidate item.
+`-NoPush` creates a local commit but does not deploy.
 Repeated publishes in the same UTC minute are rejected, even for PM-only changes,
 so every real publish gets a fresh cache identity.
 
@@ -86,8 +93,11 @@ The audit compares the previous reachable timestamp release tag (or the empty
 tree for the first release) against the prepared tree, including version and PM
 changes. Notes and historical audit files are excluded to prevent recursive diffs.
 The emitted AI directive grounds notes in that evidence and the
-[style guide](RELEASE_NOTES_STYLE.md). Update notes in another terminal/editor
-while the script waits, then type the exact release confirmation.
+[style guide](RELEASE_NOTES_STYLE.md); the script copies it to the clipboard for
+pasting into the AI prompt. If clipboard access fails, the directive is printed
+for manual copying. Update notes in another terminal/editor while the script
+waits, then enter `R` to release or `C` to cancel; the choice is
+case-insensitive.
 
 If code or HEAD changes during the notes gate, the script aborts rather than
 tagging unreviewed contents. Approved notes/audit are committed, a bare timestamp
