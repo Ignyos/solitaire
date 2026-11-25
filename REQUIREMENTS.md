@@ -154,6 +154,12 @@ later games are added consistently. The guide covers at least:
 - The in-game menu and Forfeit.
 - Undo steps and the save-per-action contract.
 
+For future games, consider single-tap automatic moves on phones and predictable,
+deterministic move priorities. Foundation-first and leftmost-tableau selection
+are preferences to consider where appropriate, not universal rules. Each game
+defines its own move priorities and stock-recycling behavior. These preferences
+do not replace required drag-and-drop or desktop double-click support.
+
 The guide's location and format are decided with the Klondike work. Code
 structure, import rules, the game contract, and the shared-code catalog are
 owned by `ARCHITECTURE.md`; the folder structure there is provisional until
@@ -183,6 +189,17 @@ Klondike confirms it.
 - Double-clicking a card is supported. When a move is available for that card,
   the game applies an available move; each game's rules define the decision
   logic for choosing which move.
+
+### Klondike decisions
+
+- Offer draw-one and draw-three variants. Both allow unlimited passes through
+  the stock, recycling the waste when the stock is exhausted.
+- On a phone, a single tap on a card makes an available move. Prefer a legal
+  foundation destination; otherwise choose the leftmost legal tableau
+  destination.
+
+### Undo
+
 - Every game supports undo for 100% of the user's actions in an attempt; do not
   impose a smaller fixed undo-history limit.
 - An undo step is any individual action taken by the user.
@@ -735,3 +752,9 @@ the open decisions above must supply exact rules and measurable thresholds.
 - 2026-11-25: Owner selected HTML/DOM for the card board and approved recording
   the successful Android Chrome drag-prototype results. Detailed presentation,
   animation, and gameplay accessibility decisions remain open.
+- 2026-11-25: Owner chose unlimited stock passes for Klondike draw-one and
+  draw-three, and single-tap automatic moves on phones, preferring foundations
+  and then the leftmost legal tableau destination.
+- 2026-11-25: Owner approved nonbinding guidance for future games to consider
+  single-tap moves and deterministic priorities, with move and stock rules
+  decided per game.
