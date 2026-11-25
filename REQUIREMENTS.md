@@ -160,6 +160,13 @@ are preferences to consider where appropriate, not universal rules. Each game
 defines its own move priorities and stock-recycling behavior. These preferences
 do not replace required drag-and-drop or desktop double-click support.
 
+For games that offer scoring, move counts, or a timer, consider Klondike's
+approach: count a user action once even when it has automatic consequences;
+reverse the undone action's signed score change and apply a one-point Undo
+penalty; and measure active play rather than time away. These are nonbinding
+preferences. Each game decides whether to offer these features and defines
+its scoring and timing details.
+
 The guide's location and format are decided with the Klondike work. Code
 structure, import rules, the game contract, and the shared-code catalog are
 owned by `ARCHITECTURE.md`; the folder structure there is provisional until
@@ -197,6 +204,25 @@ Klondike confirms it.
 - On a phone, a single tap on a card makes an available move. Prefer a legal
   foundation destination; otherwise choose the leftmost legal tableau
   destination.
+- The board places four foundations at the upper left, the stock at the upper
+  right with the waste beside it, and seven tableau columns below. The
+  application menu remains available; no ads are shown.
+- Display Time, Moves, and Score. Score starts at 0 and may become negative:
+  - +1 for moving a card from the waste or tableau to a foundation.
+  - -1 for moving a card from a foundation back to the tableau.
+  - +1 for revealing a face-down tableau card.
+  - +1 for moving a waste card to the tableau.
+  - Other moves, stock draws, and waste recycling score 0. There is no time
+    penalty.
+- Scoring effects of one action are additive. Undo reverses the signed score
+  change of the action being undone, then subtracts 1 point. For example,
+  undoing a +2 action changes the score by -3; undoing a -1 action changes it
+  by 0. Repeated Undos use the score change of each action being undone.
+- Count each card move, stock draw, waste recycle, and Undo as one move.
+  Automatic consequences of an action do not add separate moves.
+- Time measures active play: it runs while the game board is visible, including
+  while the player is thinking; pauses when the app is backgrounded or closed,
+  or a modal is open; and stops when the attempt ends.
 
 ### Undo
 
@@ -541,7 +567,8 @@ or rejection of any option.
 - Exact installation-help instructions and platform-specific wording.
 - About attribution URL and release-notes presentation.
 
-Hints, scoring, timers, statistics, sound, accounts, and cloud sync are
+Beyond the Klondike scoring and timer decisions above, hints, scoring in other
+games, timers in other games, statistics, sound, accounts, and cloud sync are
 not specified by these notes. Their absence here is not a decision to add them
 or a permanent decision to prohibit them.
 Redo and deal sharing are explicitly excluded.
@@ -758,3 +785,7 @@ the open decisions above must supply exact rules and measurable thresholds.
 - 2026-11-25: Owner approved nonbinding guidance for future games to consider
   single-tap moves and deterministic priorities, with move and stock rules
   decided per game.
+- 2026-11-25: Owner chose Klondike's board layout, Time, Moves, and Score
+  displays, scoring and Undo penalty, action-based move count, and active-play
+  timer as described in section 4. Owner requested these as nonbinding
+  guidance for future game designs.
