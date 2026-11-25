@@ -24,6 +24,9 @@ behavior lives in `REQUIREMENTS.md`; coding style lives in
 - **Code boundaries:** shared code never imports games; games may use shared
   code but never import another game. Game logic is pure. Consult the
   shared-code catalog before adding reusable helpers.
+- **Card rendering:** use HTML/DOM for the game board, keeping game rules
+  independent of rendering. Detailed animation and interaction design remain
+  open; see `REQUIREMENTS.md` for the decision and prototype evidence.
 - **Storage:** one IndexedDB database, with one shared settings store and one
   object store per game. Shared storage owns connection/transaction mechanics;
   settings and game repositories own their domain operations and schemas.

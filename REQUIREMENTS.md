@@ -154,6 +154,12 @@ later games are added consistently. The guide covers at least:
 - The in-game menu and Forfeit.
 - Undo steps and the save-per-action contract.
 
+For future games, consider single-tap automatic moves on phones and predictable,
+deterministic move priorities. Foundation-first and leftmost-tableau selection
+are preferences to consider where appropriate, not universal rules. Each game
+defines its own move priorities and stock-recycling behavior. These preferences
+do not replace required drag-and-drop or desktop double-click support.
+
 The guide's location and format are decided with the Klondike work. Code
 structure, import rules, the game contract, and the shared-code catalog are
 owned by `ARCHITECTURE.md`; the folder structure there is provisional until
@@ -183,6 +189,17 @@ Klondike confirms it.
 - Double-clicking a card is supported. When a move is available for that card,
   the game applies an available move; each game's rules define the decision
   logic for choosing which move.
+
+### Klondike decisions
+
+- Offer draw-one and draw-three variants. Both allow unlimited passes through
+  the stock, recycling the waste when the stock is exhausted.
+- On a phone, a single tap on a card makes an available move. Prefer a legal
+  foundation destination; otherwise choose the leftmost legal tableau
+  destination.
+
+### Undo
+
 - Every game supports undo for 100% of the user's actions in an attempt; do not
   impose a smaller fixed undo-history limit.
 - An undo step is any individual action taken by the user.
@@ -462,9 +479,8 @@ readability, tableau overflow/scrolling, drag-and-drop details, and keyboard
 and assistive-technology requirements.
 
 The desired presentation includes substantial card movement animation, such as
-cards moving between board locations while pile ordering changes. Evaluate
-whether each rendering approach can deliver the desired transitions before
-choosing one. No renderer or animation architecture is selected.
+cards moving between board locations while pile ordering changes. The card
+board uses HTML/DOM; the detailed animation architecture remains open.
 
 **Discussion topics, not approved:**
 
@@ -481,29 +497,24 @@ choosing one. No renderer or animation architecture is selected.
   card fragment meets that size.
 - Discuss full keyboard play, visible focus, meaningful card/pile labels,
   announcements for moves/errors, non-color-only suit cues, and reduced motion
-  before choosing the renderer. Do not disable browser zoom to make a layout fit.
+  during game design. Do not disable browser zoom to make a layout fit.
 
 ### Rendering architecture decision
 
-No rendering approach has been selected. Evaluate:
+The owner selected HTML/DOM for the card board after considering DOM, canvas,
+and Phaser. Keep game rules independent of rendering. A runtime library still
+requires explicit approval.
 
-1. HTML/DOM elements for individual playing cards.
-2. A canvas-based game surface.
-3. A library-assisted approach, such as Phaser.
+A temporary 104-card prototype exercised individual cards and overlapping
+stacks. The owner reported that all requested Android Chrome checks passed,
+including single-card and long-stack dragging, partial stacks, invalid-drop
+return, scrolling, and portrait/landscape use. A corrected browser automation
+check also verified a single-card drop. These are prototype results, not
+verification of complete Klondike or Spider gameplay, broad device coverage,
+or measured animation performance.
 
-The existing toolkit profile is a vanilla JavaScript foundation. The owner has
-since confirmed native ES modules and no Node tooling; a runtime library such
-as Phaser would still need explicit approval. Any dependency or architecture
-change needs an explicit decision rather than being introduced during
-requirements capture.
-
-Compare the approaches against responsive layout, accessibility, input methods,
-card animation/interaction needs, offline payload, complexity, and maintenance
-as more games are added. Choose measurable requirements before selecting a renderer.
-
-The owner explicitly keeps presentation/rendering decisions open while the
-other clarified topics are resolved. DOM, canvas, Phaser, viewport targets, and
-interaction/accessibility proposals are not approved by the persistence/PWA decisions.
+Viewport targets, card readability, detailed animation and drag behavior, and
+gameplay accessibility remain open for game design.
 
 ## 8. Initial-release boundaries and open decisions
 
@@ -524,9 +535,8 @@ or rejection of any option.
   and the game implementation guide details.
 - Detailed IndexedDB record fields, indexes, and exact repository API
   signatures (reserved for a separate storage-schema discussion).
-- Presentation: renderer and animation architecture, viewport/portrait-landscape
-  targets, card readability and scrolling, drag-and-drop details, and gameplay
-  accessibility.
+- Presentation: animation architecture, viewport/portrait-landscape targets,
+  card readability and scrolling, drag-and-drop details, and gameplay accessibility.
 - In-game menu placement and appearance.
 - Exact installation-help instructions and platform-specific wording.
 - About attribution URL and release-notes presentation.
@@ -739,3 +749,12 @@ the open decisions above must supply exact rules and measurable thresholds.
 - 2026-10-14: Owner approved a minimal theme contract: CSS custom-property
   tokens, a default theme, optional token-only theme overrides, and a validated
   application setting when multiple themes are offered; no theme framework.
+- 2026-11-25: Owner selected HTML/DOM for the card board and approved recording
+  the successful Android Chrome drag-prototype results. Detailed presentation,
+  animation, and gameplay accessibility decisions remain open.
+- 2026-11-25: Owner chose unlimited stock passes for Klondike draw-one and
+  draw-three, and single-tap automatic moves on phones, preferring foundations
+  and then the leftmost legal tableau destination.
+- 2026-11-25: Owner approved nonbinding guidance for future games to consider
+  single-tap moves and deterministic priorities, with move and stock rules
+  decided per game.
