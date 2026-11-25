@@ -5,20 +5,175 @@
 // Generated: 2026-10-12T22:06:35Z
 (() => {
   'use strict';
+
+  const version = new URL(import.meta.url).searchParams.get('v');
+
+  const assetVersion = encodeURIComponent(version);
+  Promise.all([
+    import(`./games/registry.js?v=${assetVersion}`),
+    import(`./core/modal.js?v=${assetVersion}`),
+    import(`./shared-ui/rules-content.js?v=${assetVersion}`)
+  ])
+    .then(([{ games }, { openModal }, { createRulesContent }]) =>
+      initialize(games, openModal, createRulesContent))
+    .catch(error => {
+      console.error('Unable to load the Solitaire game registry:', error);
+      document.getElementById('app-content').replaceChildren(createErrorContent());
+    });
+
   const status = document.getElementById('offline-status');
-  const version = new URL(document.currentScript.src).searchParams.get('v');
   if (!('serviceWorker' in navigator) || !window.isSecureContext) {
     status.textContent = 'Offline support requires HTTPS or localhost in a compatible browser.';
-    return;
+  } else {
+    const worker = new URL('./service-worker.js', location.href);
+    worker.searchParams.set('v', version);
+    navigator.serviceWorker.register(worker.href, { updateViaCache: 'none' })
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => { status.textContent = 'Offline support is ready.'; })
+      .catch(error => {
+        console.error('Unable to initialize Solitaire offline support:', error);
+        status.textContent = 'Offline support failed to initialize. Reload while online to try again.';
+      });
   }
 
-  const worker = new URL('./service-worker.js', location.href);
-  worker.searchParams.set('v', version);
-  navigator.serviceWorker.register(worker.href, { updateViaCache: 'none' })
-    .then(() => navigator.serviceWorker.ready)
-    .then(() => { status.textContent = 'Offline support is ready.'; })
-    .catch(error => {
-      console.error('Unable to initialize Solitaire offline support:', error);
-      status.textContent = 'Offline support failed to initialize. Reload while online to try again.';
-    });
+  const menuTrigger = document.getElementById('app-menu-trigger');
+  const appMenu = document.getElementById('app-menu');
+
+  menuTrigger.addEventListener('click', () => {
+    const isOpen = menuTrigger.getAttribute('aria-expanded') === 'true';
+    menuTrigger.setAttribute('aria-expanded', String(!isOpen));
+    appMenu.hidden = isOpen;
+  });
+
+  appMenu.addEventListener('click', closeMenu);
+
+  document.addEventListener('click', event => {
+    if (!appMenu.hidden && !appMenu.contains(event.target) &&
+      event.target !== menuTrigger) {
+      closeMenu();
+    }
+    for (const menu of document.querySelectorAll('.game-card-menu')) {
+      if (!menu.contains(event.target)) {
+        menu.querySelector('.game-card-menu-choices').hidden = true;
+        menu.querySelector('.game-card-menu-trigger').setAttribute('aria-expanded', 'false');
+      }
+    }
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !appMenu.hidden) {
+      closeMenu();
+      menuTrigger.focus();
+    }
+  });
+
+  function closeMenu() {
+    appMenu.hidden = true;
+    menuTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  /**
+   * @param {import('./games/registry.js').GameDefinition[]} games
+   * @param {typeof import('./core/modal.js').openModal} openModal
+   * @param {typeof import('./shared-ui/rules-content.js').createRulesContent} createRulesContent
+   * @returns {void}
+   */
+  function initialize(games, openModal, createRulesContent) {
+    const render = () => {
+      closeMenu();
+      renderHome(games, openModal, createRulesContent);
+    };
+    window.addEventListener('hashchange', render);
+    render();
+  }
+
+  /**
+   * @param {import('./games/registry.js').GameDefinition[]} games
+   * @param {typeof import('./core/modal.js').openModal} openModal
+   * @param {typeof import('./shared-ui/rules-content.js').createRulesContent} createRulesContent
+   * @returns {void}
+   */
+  function renderHome(games, openModal, createRulesContent) {
+    const content = document.getElementById('app-content');
+    const heading = document.createElement('h1');
+    heading.textContent = 'Solitaire';
+    const intro = document.createElement('p');
+    intro.textContent = 'Choose a game.';
+    const gallery = document.createElement('section');
+    gallery.className = 'game-gallery';
+    gallery.setAttribute('aria-label', 'Available games');
+
+    for (const game of games) {
+      const card = document.createElement('article');
+      card.className = 'game-card';
+      const cardHeader = document.createElement('div');
+      cardHeader.className = 'game-card-header';
+      const title = document.createElement('h2');
+      title.textContent = game.name;
+      const description = document.createElement('p');
+      description.textContent = game.description;
+      const menu = document.createElement('div');
+      menu.className = 'game-card-menu';
+      const trigger = document.createElement('button');
+      trigger.className = 'game-card-menu-trigger';
+      trigger.type = 'button';
+      trigger.setAttribute('aria-label', `${game.name} menu`);
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.setAttribute('aria-controls', `${game.id}-menu`);
+      trigger.textContent = '\u22ee';
+      const choices = document.createElement('div');
+      choices.className = 'game-card-menu-choices';
+      choices.id = `${game.id}-menu`;
+      choices.hidden = true;
+      const rulesButton = document.createElement('button');
+      rulesButton.type = 'button';
+      rulesButton.textContent = 'Rules';
+      const closeCardMenu = () => {
+        choices.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+      };
+      trigger.addEventListener('click', () => {
+        choices.hidden = !choices.hidden;
+        trigger.setAttribute('aria-expanded', String(!choices.hidden));
+      });
+      card.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !choices.hidden) {
+          closeCardMenu();
+          trigger.focus();
+          event.stopPropagation();
+        }
+      });
+      rulesButton.addEventListener('click', () => {
+        closeCardMenu();
+        openModal({
+          title: game.rules.title,
+          content: createRulesContent(game.rules),
+          opener: trigger
+        }).catch(error => {
+          console.error('Unable to open the game rules:', error);
+          status.textContent = 'Unable to open the rules. Please try again.';
+        });
+      });
+      choices.append(rulesButton);
+      menu.append(trigger, choices);
+      cardHeader.append(menu, title);
+      card.append(cardHeader, description);
+      gallery.append(card);
+    }
+
+    content.replaceChildren(heading, intro, gallery);
+  }
+
+  /**
+   * @returns {HTMLElement}
+   */
+  function createErrorContent() {
+    const section = document.createElement('section');
+    const heading = document.createElement('h1');
+    heading.textContent = 'Unable to load';
+    const message = document.createElement('p');
+    message.textContent = 'The game catalog could not be loaded. Please reload while online.';
+    section.append(heading, message);
+    return section;
+  }
 })();

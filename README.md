@@ -82,7 +82,8 @@ so every real publish gets a fresh cache identity.
 ## Production release
 
 On clean `main`, run `.\release.ps1`. One UTC `yyyy-MM-dd-HH-mm` stamp identifies
-HTML assets, the service worker cache, release diff filename, and annotated tag.
+HTML assets, relative static JavaScript module imports, the service worker cache,
+release diff filename, and annotated tag.
 The script rejects duplicate timestamps, requires explicit preparation approval,
 retires the previous `completed/` items in a separate commit, then moves all
 production candidates to `completed/`, stamps assets, and saves the diff audit.

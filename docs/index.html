@@ -17,20 +17,19 @@ Generated: 2026-10-12T22:06:35Z
   <link rel="manifest" href="./manifest.webmanifest?v=2026-10-21-23-35">
   <link rel="stylesheet" href="./styles.css?v=2026-10-21-23-35">
   <script src="./dev-site-banner.js?v=2026-10-21-23-35" defer></script>
-  <script src="./main.js?v=2026-10-21-23-35" defer></script>
+  <script type="module" src="./main.js?v=2026-10-21-23-35"></script>
 </head>
 <body>
-  <main>
-    <img src="./icon.svg" alt="" width="96" height="96">
-    <p class="eyebrow">Ignyos</p>
-    <h1>Solitaire</h1>
-    <p>A quiet place for a game of cards.</p>
-    <section aria-labelledby="starter-heading">
-      <h2 id="starter-heading">Project starter</h2>
-      <p>The browser application foundation is ready. Solitaire gameplay has not been implemented yet.</p>
-      <p id="offline-status" role="status">Checking offline support...</p>
-    </section>
-    <noscript><p>Enable JavaScript to use offline support and the future game.</p></noscript>
+  <header class="app-header">
+    <button id="app-menu-trigger" class="app-menu-trigger" type="button"
+      aria-expanded="false" aria-controls="app-menu">Menu</button>
+    <nav id="app-menu" class="app-menu" aria-label="Application menu" hidden>
+      <a href="#home">Home</a>
+    </nav>
+  </header>
+  <main id="app-content" class="app-content">
+    <noscript><p>Enable JavaScript to use this application.</p></noscript>
   </main>
+  <p id="offline-status" class="offline-status" role="status">Checking offline support...</p>
 </body>
 </html>

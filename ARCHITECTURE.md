@@ -589,4 +589,7 @@ Update it in the same change that adds, renames, or removes a shared export.
 
 | Module | Export | Purpose |
 |---|---|---|
-| *(none yet)* | | |
+| `core/modal.js` | `openModal` | Opens an accessible modal and manages dismissal and focus |
+| `shared-ui/rules-content.js` | `createRulesContent` | Renders supplied game rules for a modal |
+| `games/registry.js` | `games` | Supplies the game gallery and each game's rules content |
+| `games/klondike/rules.js` | `klondikeRules` | Provides Klondike setup, objective, move, and variant guidance |
