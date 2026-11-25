@@ -41,6 +41,18 @@ function Set-PublishVersion {
         })
         Set-Content -LiteralPath $file.FullName -Value $updated -Encoding utf8 -NoNewline
     }
+    $modulePattern = '(?<prefix>\b(?:from\s+|import\s+|import\s*\(\s*))(?<quote>[''"])(?<path>\.{1,2}/[^''"?]+\.js)(?:\?v=[^''"]*)?\k<quote>'
+    foreach ($file in Get-ChildItem -LiteralPath $docs -Recurse -File -Filter '*.js') {
+        $content = Get-Content -LiteralPath $file.FullName -Raw
+        $updated = [regex]::Replace($content, $modulePattern, {
+            param($match)
+            '{0}{1}{2}?v={3}{1}' -f $match.Groups['prefix'].Value, $match.Groups['quote'].Value,
+                $match.Groups['path'].Value, $Version
+        })
+        if ($updated -cne $content) {
+            Set-Content -LiteralPath $file.FullName -Value $updated -Encoding utf8 -NoNewline
+        }
+    }
     $workerPath = Join-Path $docs 'service-worker.js'
     $worker = Get-Content -LiteralPath $workerPath -Raw
     $cachePattern = "const CACHE_NAME = 'solitaire-v[^']+';"

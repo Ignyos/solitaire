@@ -37,6 +37,17 @@ if ($versions.Count -ne 1) { throw 'HTML must use one consistent UTC timestamp v
 foreach ($asset in @('styles.css', 'main.js', 'dev-site-banner.js', 'manifest.webmanifest')) {
     if (-not $html.Contains("${asset}?v=$($versions[0])")) { throw "HTML must reference versioned $asset." }
 }
+$gameRegistry = Join-Path $docs 'games\registry.js'
+$klondikeRules = Join-Path $docs 'games\klondike\rules.js'
+foreach ($path in @($gameRegistry, $klondikeRules)) {
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item $path).Length -eq 0) {
+        throw "Required rules asset missing or empty: $path"
+    }
+}
+$registrySource = Get-Content $gameRegistry -Raw
+if (-not $registrySource.Contains("?v=$($versions[0])")) {
+    throw 'Game registry rules import must use the HTML asset timestamp.'
+}
 $worker = Get-Content (Join-Path $docs 'service-worker.js') -Raw
 if (-not $worker.Contains("const CACHE_NAME = 'solitaire-v$($versions[0])';")) {
     throw 'Service worker cache version must match HTML asset versions.'
