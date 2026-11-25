@@ -9,7 +9,7 @@ Generated: 2026-10-12T22:06:35Z
 
 ## backlog/
 
-- (none)
+- [task-002](backlog/task-002.md)
 
 ## current/
 
@@ -17,6 +17,7 @@ Generated: 2026-10-12T22:06:35Z
 
 ## release-candidate-dev/
 
+- [task-001](release-candidate-dev/task-001.md)
 - [chore-004](release-candidate-dev/chore-004.md)
 - [chore-005](release-candidate-dev/chore-005.md)
 
