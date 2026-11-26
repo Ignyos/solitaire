@@ -9,11 +9,11 @@ Generated: 2026-10-12T22:06:35Z
 
 ## backlog/
 
-- [task-002](backlog/task-002.md)
+- (none)
 
 ## current/
 
-- (none)
+- [task-002](current/task-002.md)
 
 ## release-candidate-dev/
 
