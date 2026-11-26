@@ -35,6 +35,14 @@
       "args": ["-m", "http.server", "4173", "--bind", "127.0.0.1", "--directory", "${workspaceFolder}\\docs"],
       "isBackground": true,
       "problemMatcher": []
+    },
+    {
+      "label": "Serve tests",
+      "type": "process",
+      "command": "python",
+      "args": ["-m", "http.server", "4174", "--bind", "127.0.0.1", "--directory", "${workspaceFolder}"],
+      "isBackground": true,
+      "problemMatcher": []
     }
   ]
 }

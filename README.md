@@ -28,6 +28,15 @@ Use the VS Code **Build** and **Serve** tasks or the **Build**, **Publish-dev**,
 and **Publish-live** Run & Debug configurations. Publishing entries commit/push:
 do not run them just to preview the page.
 
+For browser tests, use the **Serve tests** task or run:
+
+```powershell
+python -m http.server 4174 --bind 127.0.0.1 --directory .
+```
+
+Open http://127.0.0.1:4174/tests/test.html. The tests remain outside `docs/`
+and are not deployed.
+
 `clean.ps1` is intentionally non-destructive: `docs/` is the application source,
 not disposable output. Release audits and PM records are not build outputs.
 

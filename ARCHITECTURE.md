@@ -600,3 +600,4 @@ Update it in the same change that adds, renames, or removes a shared export.
 | `shared-ui/rules-content.js` | `createRulesContent` | Renders supplied game rules for a modal |
 | `games/registry.js` | `games` | Supplies the game gallery and each game's rules content |
 | `games/klondike/rules.js` | `klondikeRules` | Provides Klondike setup, objective, move, and variant guidance |
+| `games/klondike/deal.js` | `dealKlondike` | Builds a Klondike starting board from a supplied card order |
