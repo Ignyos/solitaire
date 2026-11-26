@@ -262,6 +262,10 @@ separate discussion.
   undo-history entry save atomically. Undo updates the snapshot and history
   atomically. Win/forfeit records the outcome and removes move history
   atomically.
+- Klondike stores deal, attempt, and individual Undo records separately within
+  its game store. Its active-play timer checkpoints approximately once per
+  second and on pause; coordinate checkpoint and gameplay writes so neither
+  overwrites newer state.
 - Failed saves get three automatic retries one second apart; after that, block
   moves and offer Retry or Revert to last save.
 - Database migrations must preserve existing records on failure.
