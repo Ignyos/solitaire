@@ -235,6 +235,11 @@ Klondike confirms it.
 - Time measures active play: it runs while the game board is visible, including
   while the player is thinking; pauses when the app is backgrounded or closed,
   or a modal is open; and stops when the attempt ends.
+- While play is active, checkpoint the attempt's elapsed time approximately
+  once per second and also when play pauses. On reopening, restore the last
+  successfully saved elapsed time without counting time the app was closed.
+  An unexpected close can lose time since the last successful checkpoint;
+  browser scheduling or an interrupted write can increase that loss.
 
 ### Undo
 
@@ -260,8 +265,9 @@ Klondike confirms it.
 - IndexedDB is the durable data store for application state, game progress,
   move/undo history, game history, settings, and other stored application data.
 - Save game state after every move/choice, including the resulting state after
-  Undo. Home, pause, and leaving the game do not require an independent progress
-  save operation.
+  Undo. Home, pause, and leaving the game do not require an independent board
+  progress save operation; the Klondike timer checkpoints described above are
+  separate from board progress.
 - Do not impose an application-defined limit on unfinished deals per game.
   Browser storage capacity still applies; unlimited storage is not promised.
 - When a user closes the application mid-game or at another point and returns,
@@ -290,11 +296,23 @@ History scroll position and unfinished option selections remain open.
 - Surface failed saves explicitly instead of silently losing progress.
 - Restore stable navigation context without reopening transient dialogs.
 
+### Klondike storage decisions
+
+- Store deals, attempts, and individual Undo entries separately within the
+  Klondike game store. A deal retains its original shuffled card order and deal
+  number. An attempt retains its current board, options, score, move count,
+  elapsed time, and outcome; Resume loads the current snapshot directly.
+- Store one Undo entry per undoable action without rewriting the entire Undo
+  history for each move. Save the entry and updated attempt atomically. Undo
+  restores the prior board, applies the agreed score penalty, and increments
+  the move count. Recording a win or forfeit and removing the attempt's Undo
+  entries are atomic.
+- Coordinate elapsed-time checkpoints with move and Undo saves so no write
+  overwrites newer board progress or timer data. Checkpoints use the existing
+  ownership, revision-checking, and save-error safeguards.
+
 **Remaining proposals, not approved:**
 
-- Store deals separately from attempts. A deal owns its original layout; an
-  attempt owns selected options, outcome, timestamps, current card/pile state,
-  game-specific state, and a monotonically increasing revision.
 - Persist attempt snapshots and related history outcomes together so they
   cannot disagree after an interrupted write.
 - Store stable navigation context separately using route, game id, and attempt
@@ -819,3 +837,6 @@ the open decisions above must supply exact rules and measurable thresholds.
 - 2026-11-26: Owner approved visually indicated board scrolling, the Klondike
   motion behavior and reduced-motion handling in section 7, and excluding card
   board keyboard play and screen-reader access from the initial implementation.
+- 2026-11-26: Owner approved separate Klondike deal, attempt, and Undo records
+  and approximately one-second active-play timer checkpoints, as described in
+  sections 4 and 5, accepting possible lost time after an unexpected close.
