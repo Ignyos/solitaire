@@ -201,12 +201,24 @@ Klondike confirms it.
 
 - Offer draw-one and draw-three variants. Both allow unlimited passes through
   the stock, recycling the waste when the stock is exhausted.
+- Draw-one is preselected for the first new deal. Later new deals preselect
+  the last-selected variant, following the game-type settings behavior above.
+- In draw-three, display up to three overlapping waste cards. Only the top
+  card is playable; moving it exposes the next card.
 - On a phone, a single tap on a card makes an available move. Prefer a legal
   foundation destination; otherwise choose the leftmost legal tableau
   destination.
 - The board places four foundations at the upper left, the stock at the upper
   right with the waste beside it, and seven tableau columns below. The
   application menu remains available; no ads are shown.
+- A bottom-left button labeled "Game" with a menu icon opens the game-specific
+  menu. It includes Rules, New Game, and Forfeit. New Game returns to the
+  Klondike home page to choose options, leaving the current attempt unfinished
+  and resumable. Forfeit asks for confirmation before ending the attempt.
+- The initial release focuses on agreed core gameplay and application behavior,
+  including persistence, history, Retry, Undo, and rules access. Hints,
+  automatic completion, statistics, and sound are deferred beyond the initial
+  release.
 - Display Time, Moves, and Score. Score starts at 0 and may become negative:
   - +1 for moving a card from the waste or tableau to a foundation.
   - -1 for moving a card from a foundation back to the tableau.
@@ -563,14 +575,15 @@ or rejection of any option.
   signatures (reserved for a separate storage-schema discussion).
 - Presentation: animation architecture, viewport/portrait-landscape targets,
   card readability and scrolling, drag-and-drop details, and gameplay accessibility.
-- In-game menu placement and appearance.
+- Additional in-game menu presentation details.
 - Exact installation-help instructions and platform-specific wording.
 - About attribution URL and release-notes presentation.
 
-Beyond the Klondike scoring and timer decisions above, hints, scoring in other
-games, timers in other games, statistics, sound, accounts, and cloud sync are
-not specified by these notes. Their absence here is not a decision to add them
-or a permanent decision to prohibit them.
+Beyond the Klondike decisions above, scoring in other games, timers in other
+games, accounts, and cloud sync are not specified by these notes. Their absence
+here is not a decision to add them or a permanent decision to prohibit them.
+Hints, automatic completion, statistics, and sound are deferred for the initial
+Klondike release, not permanently prohibited.
 Redo and deal sharing are explicitly excluded.
 
 ## 9. Baseline acceptance scenarios
@@ -789,3 +802,7 @@ the open decisions above must supply exact rules and measurable thresholds.
   displays, scoring and Undo penalty, action-based move count, and active-play
   timer as described in section 4. Owner requested these as nonbinding
   guidance for future game designs.
+- 2026-11-25: Owner selected draw-one as the first-play default and an
+  overlapping draw-three waste display. Owner chose a bottom-left Game menu
+  with Rules, New Game, and confirmed Forfeit, and a core-first initial release
+  that defers hints, automatic completion, statistics, and sound.
