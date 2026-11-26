@@ -505,20 +505,30 @@ Defaults:
 - Keep the persistent menu accessible at the top left across supported layouts.
 - Every interactive control outside the card board (menus, game homes, history,
   settings, modals, notifications) can be reached with Tab and operated with
-  the keyboard, with visible focus. Keyboard play of the card board itself is
-  part of the open presentation discussion below.
+  the keyboard, with visible focus.
 - The visual design supports multiple themes. One default theme ships first;
   additional themes and a theme choice in Settings may follow.
 - Error messages shown to the user are short and friendly. Full technical
   details go to the browser console.
 
-**Open:** define supported viewport sizes, portrait/landscape behavior, card
-readability, tableau overflow/scrolling, drag-and-drop details, and keyboard
-and assistive-technology requirements.
+### Klondike presentation decisions
 
-The desired presentation includes substantial card movement animation, such as
-cards moving between board locations while pile ordering changes. The card
-board uses HTML/DOM; the detailed animation architecture remains open.
+- On small screens, the board may scroll. Visually indicate when part of the
+  board is offscreen and a scroll action is needed to view it.
+- The initial implementation does not include keyboard play or screen-reader
+  access for the card board. This does not change the keyboard requirements
+  for controls outside the board.
+- During dragging, cards follow the finger immediately, without easing or lag.
+  Moves and Undo briefly slide cards to their destinations; invalid drops return
+  to their starting positions. Deal, draw, and reveal use short transitions.
+- Honor the device's reduced-motion preference by making nonessential board
+  transitions immediate. Motion is presentation only: it does not change
+  scoring or delay the next action.
+
+**Open:** define supported viewport sizes, portrait/landscape behavior, card
+readability, detailed scrolling and drag behavior, and gameplay accessibility
+for other games. The board uses HTML/DOM; detailed animation architecture
+remains open.
 
 **Discussion topics, not approved:**
 
@@ -533,9 +543,9 @@ board uses HTML/DOM; the detailed animation architecture remains open.
 - Target at least 44 by 44 CSS pixels for primary controls. Overlapping cards
   need separate hit-area/selection design rather than claiming every exposed
   card fragment meets that size.
-- Discuss full keyboard play, visible focus, meaningful card/pile labels,
-  announcements for moves/errors, non-color-only suit cues, and reduced motion
-  during game design. Do not disable browser zoom to make a layout fit.
+- Consider meaningful card/pile labels, announcements for moves/errors, and
+  non-color-only suit cues during game design. Do not disable browser zoom to
+  make a layout fit.
 
 ### Rendering architecture decision
 
@@ -551,8 +561,8 @@ check also verified a single-card drop. These are prototype results, not
 verification of complete Klondike or Spider gameplay, broad device coverage,
 or measured animation performance.
 
-Viewport targets, card readability, detailed animation and drag behavior, and
-gameplay accessibility remain open for game design.
+Viewport targets, card readability, and detailed animation and drag behavior
+remain open for game design.
 
 ## 8. Initial-release boundaries and open decisions
 
@@ -574,7 +584,7 @@ or rejection of any option.
 - Detailed IndexedDB record fields, indexes, and exact repository API
   signatures (reserved for a separate storage-schema discussion).
 - Presentation: animation architecture, viewport/portrait-landscape targets,
-  card readability and scrolling, drag-and-drop details, and gameplay accessibility.
+  card readability and detailed scrolling and drag-and-drop behavior.
 - Additional in-game menu presentation details.
 - Exact installation-help instructions and platform-specific wording.
 - About attribution URL and release-notes presentation.
@@ -806,3 +816,6 @@ the open decisions above must supply exact rules and measurable thresholds.
   overlapping draw-three waste display. Owner chose a bottom-left Game menu
   with Rules, New Game, and confirmed Forfeit, and a core-first initial release
   that defers hints, automatic completion, statistics, and sound.
+- 2026-11-26: Owner approved visually indicated board scrolling, the Klondike
+  motion behavior and reduced-motion handling in section 7, and excluding card
+  board keyboard play and screen-reader access from the initial implementation.
