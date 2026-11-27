@@ -30,3 +30,16 @@ Develop the game implementation guide alongside it for future games.
   implementation.
 - Plan and confirm implementation in bounded slices rather than treating this
   backlog item as an approval of every unresolved design decision.
+
+## Approved slice: multi-window coordination removal
+
+- On 2026-11-27, the developer approved removing multi-window ownership,
+  takeover, and stale-write protection. Concurrent windows may overwrite or
+  corrupt saved progress; normal single-window durability remains required.
+- The removal and related requirements/architecture changes are implemented
+  in the local navigation work, but are not yet integrated into `dev`.
+- `build.ps1`, module syntax checks, and five focused browser storage tests
+  passed. A single-window browser check covered deal creation, timer activity,
+  reload, and cancelled/confirmed Forfeit.
+- Concurrent-window behavior was not verified. Card play and the rest of the
+  task's acceptance criteria remain incomplete; this item stays in `current/`.
