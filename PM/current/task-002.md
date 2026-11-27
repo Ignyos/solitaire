@@ -73,3 +73,16 @@ Develop the game implementation guide alongside it for future games.
 - Playable cards, functional Undo, installed-PWA testing, and concurrent-window
   behavior were not covered. The implementation is on the task branch and not
   integrated into `dev`; the item remains in `current/`.
+
+## Approved slice: game settings and new-deal options
+
+- On 2026-11-27, the developer approved per-game Settings, immediately saved
+  game options and display preference, and the reusable new-deal options dialog.
+  An unfinished attempt is forfeited only when Forfeit & Start succeeds.
+- `build.ps1`, syntax and whitespace checks, and nine browser storage tests
+  passed. Browser checks covered both menus, the new-deal dialog paths,
+  cancellation, timer pause, persisted options, save Retry/Revert, a 320px
+  layout, and offline New Deal. UI checks were manual.
+- Card play, functional Undo, installed-PWA testing, and concurrent-window
+  behavior were not covered. The implementation is on the task branch and not
+  integrated into `dev`; the item remains in `current/`.

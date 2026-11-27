@@ -4,6 +4,8 @@ import { shuffledDeck, fingerprintDeal } from '../../cards/deck.js?v=2026-10-21-
 import { openStorage } from '../../core/storage.js?v=2026-10-21-23-35';
 import { readLastRoute, saveLastRoute } from '../../core/navigation-context.js?v=2026-10-21-23-35';
 import { saveWithRetries } from '../../core/save-coordinator.js?v=2026-10-21-23-35';
+import { readGameSettings, saveGameOption, saveOptionsDisplay } from '../../core/game-settings.js?v=2026-10-21-23-35';
+import { openGameOptions } from '../../shared-ui/game-options.js?v=2026-10-21-23-35';
 import {
   KLONDIKE_STORE, upgradeKlondikeStore, readActiveAttempt, readAttempt, readFinishedDeals,
   createAttempt, retryAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
@@ -40,6 +42,7 @@ export async function createKlondikeNavigation({
   let boardCleanup = null;
   let routing = 0;
   let recoveryOpen = false;
+  let settingsBusy = false;
 
   function canWrite() {
     return storageReady && !recoveryOpen;
@@ -52,10 +55,21 @@ export async function createKlondikeNavigation({
   function clearNotice() {
     notice.replaceChildren();
     notice.removeAttribute('role');
+    content.before(notice);
+  }
+
+  function placeNotice() {
+    const dialog = document.querySelector('dialog[open]');
+    if (!dialog || notice.parentElement === dialog) return;
+    dialog.append(notice);
+    dialog.addEventListener('close', () => {
+      if (notice.parentElement === dialog) content.before(notice);
+    }, { once: true });
   }
 
   function showMessage(message, isError = false) {
     if (recoveryOpen) return;
+    placeNotice();
     notice.textContent = message;
     if (isError) notice.setAttribute('role', 'alert');
     else notice.removeAttribute('role');
@@ -70,6 +84,7 @@ export async function createKlondikeNavigation({
     const invalidState = error instanceof AttemptStateError;
     recoveryOpen = true;
     return new Promise(resolve => {
+      placeNotice();
       notice.replaceChildren();
       notice.setAttribute('role', 'alert');
       const message = document.createElement('p');
@@ -104,6 +119,7 @@ export async function createKlondikeNavigation({
       notice.append(message);
       if (!invalidState) notice.append(retry);
       notice.append(revert);
+      (invalidState ? revert : retry).focus();
     });
   }
 
@@ -229,29 +245,109 @@ export async function createKlondikeNavigation({
     }
   }
 
+  async function updateSetting(body, action) {
+    if (settingsBusy) throw new Error('A game setting is already being saved.');
+    const dialog = body.closest('dialog');
+    if (!dialog) throw new Error('The game settings dialog is not open.');
+    settingsBusy = true;
+    const controls = [...dialog.querySelectorAll('button'), ...dialog.querySelectorAll('input')]
+      .filter(control => !control.disabled);
+    controls.forEach(control => { control.disabled = true; });
+    const status = document.createElement('p');
+    status.setAttribute('role', 'status');
+    status.textContent = 'Saving...';
+    body.append(status);
+    try {
+      await save(async () => {
+        await action();
+        return true;
+      });
+      return await readGameSettings(database, game);
+    } finally {
+      status.remove();
+      controls.forEach(control => { control.disabled = false; });
+      settingsBusy = false;
+    }
+  }
+
+  async function showGameOptions(opener, settings, start, replace) {
+    return openGameOptions({
+      openModal, opener, definitions: game.options, values: settings.options, start, replace,
+      canClose: () => !settingsBusy,
+      onOptionChange: async (body, optionId, value) =>
+        (await updateSetting(body, () => saveGameOption(database, game, optionId, value))).options,
+      onShowChange: async (body, showOptions) =>
+        (await updateSetting(body, () => saveOptionsDisplay(database, game.id, showOptions))).showOptions,
+      onError: error => reportError('Unable to update game settings:', error)
+    });
+  }
+
+  async function openSettings(opener) {
+    if (!canWrite()) return;
+    await pauseClock();
+    try {
+      const settings = await readGameSettings(database, game);
+      const body = document.createElement('div');
+      body.className = 'game-settings';
+      const options = document.createElement('button');
+      options.type = 'button';
+      options.textContent = 'Game Options';
+      let openOptions = false;
+      options.addEventListener('click', () => {
+        if (settingsBusy) return;
+        openOptions = true;
+        options.closest('dialog').close();
+      });
+      const label = document.createElement('label');
+      const display = document.createElement('input');
+      display.type = 'checkbox';
+      display.checked = settings.showOptions;
+      display.addEventListener('change', () => {
+        updateSetting(body, () => saveOptionsDisplay(database, game.id, display.checked))
+          .then(updated => { display.checked = updated.showOptions; })
+          .catch(error => reportError('Unable to update game settings:', error));
+      });
+      label.append(display, document.createTextNode(' Display Options Before New Games'));
+      body.append(options, label);
+      await openModal({ title: `${game.name} Settings`, content: body, opener,
+        canClose: () => !settingsBusy });
+      if (openOptions) await showGameOptions(opener, await readGameSettings(database, game), false, false);
+    } finally {
+      startClock();
+    }
+  }
+
   async function newDeal(opener) {
     if (!canWrite()) return;
     await pauseClock();
-    activeAttempt = await readActiveAttempt(database);
-    if (activeAttempt && !await confirmForfeit(opener)) {
-      startClock();
-      return;
+    let started = false;
+    try {
+      activeAttempt = await readActiveAttempt(database);
+      const settings = await readGameSettings(database, game);
+      if (settings.showOptions) {
+        if (!await showGameOptions(opener, settings, true, Boolean(activeAttempt))) return;
+      } else if (activeAttempt && !await confirmForfeit(opener)) {
+        return;
+      }
+      const cards = shuffledDeck();
+      const fingerprint = await fingerprintDeal(cards, DEALING_VERSION);
+      const attemptId = crypto.randomUUID();
+      const replace = activeAttempt
+        ? { id: activeAttempt.id, elapsedMs: activeAttempt.elapsedMs }
+        : null;
+      const created = await save(() => createAttempt(database, {
+        attemptId, cards, fingerprint, replace
+      }));
+      if (!created) {
+        await reloadCurrent();
+        return;
+      }
+      activeAttempt = created;
+      started = true;
+      window.location.hash = `${ATTEMPT_PREFIX}${encodeURIComponent(created.id)}`;
+    } finally {
+      if (!started) startClock();
     }
-    const cards = shuffledDeck();
-    const fingerprint = await fingerprintDeal(cards, DEALING_VERSION);
-    const attemptId = crypto.randomUUID();
-    const replace = activeAttempt
-      ? { id: activeAttempt.id, elapsedMs: activeAttempt.elapsedMs }
-      : null;
-    const created = await save(() => createAttempt(database, {
-      attemptId, cards, fingerprint, replace
-    }));
-    if (!created) {
-      await reloadCurrent();
-      return;
-    }
-    activeAttempt = created;
-    window.location.hash = `${ATTEMPT_PREFIX}${encodeURIComponent(created.id)}`;
   }
 
   async function retry(opener) {
@@ -437,6 +533,7 @@ export async function createKlondikeNavigation({
       actionButton('Resume', closeAnd(resume), !activeAttempt),
       actionButton('Retry', closeAnd(retry), !canWrite()),
       actionButton('Forfeit', closeAnd(forfeit), !activeAttempt || !canWrite()),
+      actionButton('Settings', closeAnd(openSettings), !canWrite()),
       actionButton('Rules', closeAnd(openRules))
     );
     menu.append(trigger, choices);
@@ -535,6 +632,7 @@ export async function createKlondikeNavigation({
     titleAction,
     newDeal,
     retry,
+    openSettings,
     resume,
     forfeit,
     openRules,

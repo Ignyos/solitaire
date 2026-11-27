@@ -1,10 +1,10 @@
 /** @module Accessible modal dialog lifecycle */
 
 /**
- * @param {{ title: string, content: HTMLElement, opener: HTMLElement }} options
+ * @param {{ title: string, content: HTMLElement, opener: HTMLElement, canClose?: () => boolean }} options
  * @returns {Promise<{ reason: string }>}
  */
-export function openModal({ title, content, opener }) {
+export function openModal({ title, content, opener, canClose = () => true }) {
   if (document.querySelector('dialog[open]')) {
     return Promise.reject(new Error('A modal dialog is already open.'));
   }
@@ -22,14 +22,17 @@ export function openModal({ title, content, opener }) {
   closeButton.type = 'button';
   closeButton.setAttribute('aria-label', 'Close');
   closeButton.textContent = '\u00d7';
-  closeButton.addEventListener('click', () => dialog.close());
+  const requestClose = () => {
+    if (canClose()) dialog.close();
+  };
+  closeButton.addEventListener('click', requestClose);
   header.append(heading, closeButton);
   dialog.append(header, content);
 
   dialog.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
       event.preventDefault();
-      dialog.close();
+      requestClose();
     }
   });
 
@@ -38,7 +41,7 @@ export function openModal({ title, content, opener }) {
     const bounds = dialog.getBoundingClientRect();
     if (event.clientX < bounds.left || event.clientX > bounds.right ||
         event.clientY < bounds.top || event.clientY > bounds.bottom) {
-      dialog.close();
+      requestClose();
     }
   });
 

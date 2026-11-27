@@ -169,6 +169,10 @@
       forfeitButton.type = 'button';
       forfeitButton.textContent = 'Forfeit';
       forfeitButton.disabled = game.id !== 'klondike' || !app.activeAttempt || !app.canWrite();
+      const settingsButton = document.createElement('button');
+      settingsButton.type = 'button';
+      settingsButton.textContent = 'Settings';
+      settingsButton.disabled = game.id !== 'klondike' || !app.canWrite();
       const closeCardMenu = () => {
         choices.hidden = true;
         trigger.setAttribute('aria-expanded', 'false');
@@ -211,7 +215,11 @@
         closeCardMenu();
         app.forfeit(trigger).catch(error => app.reportError('Unable to forfeit the deal:', error));
       });
-      choices.append(newDealButton, resumeButton, retryButton, forfeitButton, rulesButton);
+      settingsButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.openSettings(trigger).catch(error => app.reportError('Unable to open game settings:', error));
+      });
+      choices.append(newDealButton, resumeButton, retryButton, forfeitButton, settingsButton, rulesButton);
       menu.append(trigger, choices);
       cardHeader.append(menu, title);
       card.append(cardHeader, description);

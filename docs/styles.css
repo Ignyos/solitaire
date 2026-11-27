@@ -240,6 +240,24 @@ button, summary { cursor: pointer; }
   color: var(--color-text);
   font: inherit;
 }
+.game-options fieldset {
+  display: grid;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
+  border: 1px solid var(--color-border);
+  border-radius: .5rem;
+  padding: var(--space-md);
+}
+.game-options-preference, .game-settings label { display: block; margin: var(--space-md) 0; }
+.game-options-actions button, .game-settings button {
+  margin: var(--space-sm);
+  padding: .65rem .8rem;
+  border: 1px solid var(--color-border);
+  border-radius: .5rem;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+}
 .modal {
   width: min(42rem, calc(100% - 2rem));
   max-height: calc(100% - 2rem);

@@ -567,10 +567,12 @@ Update it in the same change that adds, renames, or removes a shared export.
 |---|---|---|
 | `core/modal.js` | `openModal` | Opens an accessible modal and manages dismissal and focus |
 | `core/storage.js` | `SETTINGS_STORE`, `APPLICATION_STORE`, `openStorage`, `requestResult`, `withTransaction` | Opens IndexedDB and provides scoped transaction/request handling |
+| `core/game-settings.js` | `readGameSettings`, `saveGameOption`, `saveOptionsDisplay` | Persists per-game options and new-game dialog preferences |
 | `core/navigation-context.js` | `readLastRoute`, `saveLastRoute` | Reads and saves the last stable route |
 | `core/save-coordinator.js` | `saveWithRetries` | Retries failed durable saves unless the error is non-retryable |
 | `cards/deck.js` | `shuffledDeck`, `fingerprintDeal` | Creates a secure shuffled deck and canonical fingerprint |
 | `shared-ui/rules-content.js` | `createRulesContent` | Renders supplied game rules for a modal |
+| `shared-ui/game-options.js` | `openGameOptions` | Opens reusable game-option controls for settings or a new deal |
 | `games/registry.js` | `games` | Supplies the game gallery and each game's rules content |
 | `games/klondike/rules.js` | `klondikeRules` | Provides Klondike setup, objective, move, and variant guidance |
 | `games/klondike/deal.js` | `dealKlondike` | Builds a Klondike starting board from a supplied card order |

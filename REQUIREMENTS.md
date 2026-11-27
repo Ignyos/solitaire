@@ -27,7 +27,7 @@ follow later using the game implementation guide (section 3a).
 - The application home/splash page presents a card gallery of available games.
 - Selecting a game card title resumes that game's unfinished attempt, or starts
   a new deal with its saved game-type options if there is no unfinished attempt.
-- Each game card menu offers New Deal, Resume, Retry, Forfeit, and Rules,
+- Each game card menu offers New Deal, Resume, Retry, Forfeit, Settings, and Rules,
   with Rules last. New Deal
   starts with saved game-type options. Resume opens the unfinished attempt.
   Retry selects a finished deal to retry from its original layout and options;
@@ -75,8 +75,24 @@ History ordering and changing options while a deal is in progress are open.
 
 Only one attempt may be unfinished per game type. Starting a new deal or
 retrying a finished deal while one is unfinished asks the player to confirm
-forfeiting it first. On confirmation, record its forfeited outcome, elapsed
-time, and move count; cancellation leaves it unchanged.
+forfeiting it first. When the replacement starts, record the old attempt's
+forfeited outcome, elapsed time, and move count; cancellation leaves it
+unchanged.
+
+Both game menus offer Settings with Game Options and a per-game Display Options
+Before New Games preference, enabled by default. Game Options opens the reusable
+options dialog for configuration without starting a deal. Changes to options
+and the display preference are saved immediately, even if the dialog is closed.
+Changes affect future new deals, not an active attempt or Retry.
+
+When the display preference is enabled, New Deal and a game-card title that
+starts a new deal open the options dialog. It offers Start and a "Don't show
+this again" checkbox that disables the preference immediately; explain that it
+can be changed in game Settings. If an attempt is unfinished, the same dialog
+warns that starting will forfeit it and offers Forfeit & Start. Closing or
+cancelling leaves the attempt intact. When options are hidden, starting with an
+unfinished attempt still requires Forfeit confirmation; otherwise a new deal
+starts directly. Pause the active timer while these dialogs are open.
 
 The Klondike Retry action opens a modal with one compact card per
 finished deal. Each card shows the deal number, draw option, latest finished
@@ -203,8 +219,9 @@ Klondike confirms it.
 - The exact storage record layout is a separate future discussion.
 - A new deal preselects the game's saved type-wide settings (last-selected
   options). The actual options used are also stored with the deal.
-- Changing an option on a game's home page immediately updates that game's
-  last-selected settings, even if the player leaves without starting a deal.
+- Changing an option in game Settings or the new-deal dialog immediately updates
+  that game's last-selected settings, even if the player leaves without starting
+  a deal.
 
 ## 4. Gameplay, interaction, and undo
 
@@ -844,3 +861,6 @@ This is a historical record; later decisions supersede earlier direction.
   durability and save-error handling remain required.
 - 2026-11-27: Owner renamed the deal-based Replay action to Retry to distinguish
   starting the same deal again from watching a recording of an earlier attempt.
+- 2026-11-27: Owner chose per-game Settings and an optional reusable new-game
+  options dialog. When a deal is unfinished, combine options and Forfeit
+  confirmation in one dialog; commit the Forfeit only when starting the new deal.

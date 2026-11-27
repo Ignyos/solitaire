@@ -9,8 +9,9 @@ const VERSION = CACHE_NAME.slice('solitaire-v'.length);
 const ASSETS = ['./', './index.html', './styles.css', './main.js',
   './games/registry.js', './games/klondike/rules.js', './games/klondike/deal.js',
   './games/klondike/store.js', './games/klondike/view.js', './games/klondike/navigation.js',
-  './cards/deck.js', './core/modal.js', './core/storage.js',
+  './cards/deck.js', './core/modal.js', './core/storage.js', './core/game-settings.js',
   './core/navigation-context.js', './core/save-coordinator.js', './shared-ui/rules-content.js',
+  './shared-ui/game-options.js',
   './dev-site-banner.js', './manifest.webmanifest', './icon.svg']
   .map(path => /\.(css|js|webmanifest)$/.test(path) ? `${path}?v=${VERSION}` : path);
 

@@ -2,6 +2,8 @@ import { shuffledDeck, fingerprintDeal } from '../docs/cards/deck.js';
 import { openStorage, requestResult, withTransaction } from '../docs/core/storage.js';
 import { readLastRoute, saveLastRoute } from '../docs/core/navigation-context.js';
 import { saveWithRetries } from '../docs/core/save-coordinator.js';
+import { readGameSettings, saveGameOption, saveOptionsDisplay } from '../docs/core/game-settings.js';
+import { games } from '../docs/games/registry.js';
 import {
   KLONDIKE_STORE, upgradeKlondikeStore, createAttempt, readActiveAttempt, readFinishedDeals,
   retryAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
@@ -25,8 +27,26 @@ const name = `solitaire-test-${crypto.randomUUID()}`;
 const database = await openStorage({
   name, gameStores: [{ name: KLONDIKE_STORE, upgrade: upgradeKlondikeStore }]
 });
+const game = games.find(entry => entry.id === 'klondike');
+if (!game) throw new Error('Klondike is missing from the game registry.');
 
 const tests = [
+  {
+    name: 'Persists game options and display preference independently per game',
+    async run() {
+      const defaults = await readGameSettings(database, game);
+      assert(defaults.options.draw === 1 && defaults.showOptions, 'Wrong first-play defaults.');
+      await saveGameOption(database, game, 'draw', 3);
+      await saveOptionsDisplay(database, game.id, false);
+      const saved = await readGameSettings(database, game);
+      const other = await readGameSettings(database, { ...game, id: 'another-game' });
+      assert(saved.options.draw === 3 && !saved.showOptions, 'Settings were not saved.');
+      assert(other.options.draw === 1 && other.showOptions, 'Settings leaked to another game.');
+      await rejectsWith(() => saveGameOption(database, game, 'draw', 2), TypeError);
+      await saveGameOption(database, game, 'draw', 1);
+      await saveOptionsDisplay(database, game.id, true);
+    }
+  },
   {
     name: 'Generates a complete deck and a stable, deal-specific fingerprint',
     async run() {
@@ -167,6 +187,20 @@ const tests = [
         'Replacement did not preserve the latest finished result.');
       assert(second && second.attemptCount === 2 && (await readActiveAttempt(database)).id === 'retry-second',
         'Replacement or unfinished attempt count was not saved.');
+    }
+  },
+  {
+    name: 'Uses the saved draw option for a new deal',
+    async run() {
+      await saveGameOption(database, game, 'draw', 3);
+      const cards = shuffledDeck();
+      const fingerprint = await fingerprintDeal(cards, 1);
+      const created = await createAttempt(database, {
+        attemptId: 'draw-three', cards, fingerprint,
+        replace: { id: 'retry-second', elapsedMs: 0 }
+      });
+      assert(created.options.draw === 3 && (await readActiveAttempt(database)).id === 'draw-three',
+        'The new deal did not use the saved option.');
     }
   },
   {
