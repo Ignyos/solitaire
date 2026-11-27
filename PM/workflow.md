@@ -33,12 +33,25 @@ actually performed -- it is never sized to reduce how often the developer is ask
   covered.
 - The developer answers per item. A single approval covering the whole list is allowed only when
   the developer gives it explicitly; it is never assumed from silence or from a general "looks good".
-- Confirmed: update the item file, then perform the folder move.
+- Confirmed slice: record the approval and evidence in the item file. Keep the
+  item in `current/` if its acceptance criteria are not yet complete.
+- Confirmed complete item: update the item file, move it to the appropriate
+  next lifecycle folder, and update the index.
 - Rejected: the item stays where it is and the feedback is appended to its item file so the next
   session does not relitigate it.
 - Request first, write second. Marking an item complete in the same turn as asking defeats the gate.
 - Only items the slice actually touched appear in the list. Unrelated in-flight items are not
   bundled in to ride along on the same approval.
+
+## Task integration
+
+- Review slices locally and, after approval, normally record each slice in one
+  commit on its task branch, including its related PM updates.
+- Normally use one pull request per task and publish to dev once the task branch
+  is ready and integrated, rather than creating a PR or publishing per slice.
+  Exceptions can be agreed individually with the developer.
+- Task-branch PM updates are not visible on `dev` until integration. Slice
+  approval does not itself authorize a commit, push, merge, or deployment.
 
 ## Verification scope discipline
 
@@ -92,6 +105,6 @@ Dev publishing changes deployed assets only. PM files and lifecycle folders rema
 
 ## Optional: branch discipline
 
-`branching.md` is an opt-in companion to this file covering how PM housekeeping changes and code
-changes should be split across `dev` and per-item working branches. It only applies if the project
-opted in during bootstrap and `PM/branching.md` exists.
+`branching.md` is an opt-in companion to this file covering task branches, related PM updates,
+and integration. It only applies if the project opted in during bootstrap and `PM/branching.md`
+exists.
