@@ -6,7 +6,7 @@ import { readGameSettings, saveGameOption, saveOptionsDisplay } from '../docs/co
 import { games } from '../docs/games/registry.js';
 import {
   KLONDIKE_STORE, upgradeKlondikeStore, createAttempt, readActiveAttempt, readFinishedDeals,
-  retryAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
+  retryAttempt, checkpointAttempt, readLastUndo, applyAttemptAction, undoAttemptAction, forfeitAttempt, AttemptStateError
 } from '../docs/games/klondike/store.js';
 
 function assert(condition, message) {
@@ -201,6 +201,142 @@ const tests = [
       });
       assert(created.options.draw === 3 && (await readActiveAttempt(database)).id === 'draw-three',
         'The new deal did not use the saved option.');
+    }
+  },
+  {
+    name: 'Persists action history, undo penalties, and timer checkpoints atomically',
+    async run() {
+      const initial = await readActiveAttempt(database);
+      const first = await applyAttemptAction(database, {
+        id: initial.id, elapsedMs: 1000, action: { type: 'draw' }
+      });
+      assert(first.board.waste.length === 3 && first.moves === 1, 'Draw-three was not saved.');
+      const undoEntry = await readLastUndo(database, initial.id);
+      assert(JSON.stringify(undoEntry?.board) === JSON.stringify(initial.board),
+        'Undo availability did not expose the prior position.');
+      await checkpointAttempt(database, { id: initial.id, elapsedMs: 2000 });
+      const second = await applyAttemptAction(database, {
+        id: initial.id, elapsedMs: 1500, action: { type: 'draw' }
+      });
+      assert(second.elapsedMs === 2000 && second.board.waste.length === 6,
+        'Move overwrote the checkpoint or board.');
+      const reopened = await openStorage({
+        name, gameStores: [{ name: KLONDIKE_STORE, upgrade: upgradeKlondikeStore }]
+      });
+      try {
+        assert((await readActiveAttempt(reopened)).board.waste.length === 6, 'Move was not durable.');
+        const undone = await undoAttemptAction(reopened, { id: initial.id, elapsedMs: 3000 });
+        assert(undone.board.waste.length === 3 && undone.score === -1 &&
+          undone.moves === 3 && undone.elapsedMs === 3000, 'First Undo was incorrect.');
+      } finally {
+        reopened.close();
+      }
+      const undone = await undoAttemptAction(database, { id: initial.id, elapsedMs: 2500 });
+      assert(JSON.stringify(undone.board) === JSON.stringify(initial.board) && undone.score === -2 &&
+        undone.moves === 4 && undone.elapsedMs === 3000, 'Second Undo was incorrect.');
+      assert(await readLastUndo(database, initial.id) === null, 'Undo must be unavailable when history is empty.');
+      await rejectsWith(() => undoAttemptAction(database, { id: initial.id, elapsedMs: 3000 }),
+        AttemptStateError);
+      let illegal = false;
+      try {
+        await applyAttemptAction(database, {
+          id: initial.id, elapsedMs: 3000,
+          action: { type: 'move', from: { pile: 'waste' }, to: { pile: 'foundation', index: 0 } }
+        });
+      } catch (error) {
+        if (error.name !== 'IllegalMoveError') throw error;
+        illegal = true;
+      }
+      assert(illegal, 'An illegal move must be rejected.');
+      assert((await readActiveAttempt(database)).moves === 4, 'Invalid actions changed the saved attempt.');
+    }
+  },
+  {
+    name: 'Rolls back failed writes and retains more than 100 undo steps',
+    async run() {
+      const id = 'draw-three';
+      const before = await readActiveAttempt(database);
+      await withTransaction(database, [KLONDIKE_STORE], 'readwrite', transaction =>
+        requestResult(transaction.objectStore(KLONDIKE_STORE).add({}, ['undo', id, before.moves + 1])));
+      await rejectsWith(() => applyAttemptAction(database, {
+        id, elapsedMs: 4000, action: { type: 'draw' }
+      }), DOMException);
+      assert(JSON.stringify(await readActiveAttempt(database)) === JSON.stringify(before),
+        'A failed action transaction changed the saved attempt.');
+      await withTransaction(database, [KLONDIKE_STORE], 'readwrite', transaction =>
+        requestResult(transaction.objectStore(KLONDIKE_STORE).delete(['undo', id, before.moves + 1])));
+      for (let count = 0; count < 101; count += 1) {
+        await applyAttemptAction(database, { id, elapsedMs: 4000, action: { type: 'draw' } });
+      }
+      for (let count = 0; count < 101; count += 1) {
+        await undoAttemptAction(database, { id, elapsedMs: 4000 });
+      }
+      const restored = await readActiveAttempt(database);
+      assert(JSON.stringify(restored.board) === JSON.stringify(before.board) &&
+        restored.moves === before.moves + 202 && restored.score === before.score - 101,
+      'Undo history was capped or restored the wrong state.');
+    }
+  },
+  {
+    name: 'Undo reverses additive and negative scores before applying its penalty',
+    async run() {
+      const id = 'draw-three';
+      await withTransaction(database, [KLONDIKE_STORE], 'readwrite', async transaction => {
+        const store = transaction.objectStore(KLONDIKE_STORE);
+        const attempt = await requestResult(store.get(['attempt', id]));
+        attempt.board = {
+          stock: [], waste: [],
+          tableau: [[{ card: { suit: 'clubs', rank: 4 }, faceUp: false },
+            { card: { suit: 'hearts', rank: 1 }, faceUp: true }],
+          [{ card: { suit: 'clubs', rank: 2 }, faceUp: true }], [], [], [], [], []],
+          foundations: [[], [], [], []]
+        };
+        attempt.score = 0;
+        await requestResult(store.put(attempt, ['attempt', id]));
+      });
+      const action = { type: 'move', from: { pile: 'tableau', index: 0, cardIndex: 1 },
+        to: { pile: 'foundation', index: 0 } };
+      const moved = await applyAttemptAction(database, { id, elapsedMs: 4000, action });
+      assert(moved.score === 2, 'Foundation move and reveal must both score.');
+      const undone = await undoAttemptAction(database, { id, elapsedMs: 4000 });
+      assert(undone.score === -1 && !undone.board.tableau[0][0].faceUp,
+        'Undo did not reverse the +2 action and its reveal.');
+      await applyAttemptAction(database, { id, elapsedMs: 4000, action });
+      const back = await applyAttemptAction(database, {
+        id, elapsedMs: 4000, action: { type: 'move',
+          from: { pile: 'foundation', index: 0 }, to: { pile: 'tableau', index: 1 } }
+      });
+      const undoBack = await undoAttemptAction(database, { id, elapsedMs: 4000 });
+      assert(undoBack.score === back.score, 'Undoing a -1 action should have a net zero score change.');
+    }
+  },
+  {
+    name: 'Finishing a game atomically records a win and removes undo history',
+    async run() {
+      const id = 'draw-three';
+      const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
+      await withTransaction(database, [KLONDIKE_STORE], 'readwrite', async transaction => {
+        const store = transaction.objectStore(KLONDIKE_STORE);
+        const attempt = await requestResult(store.get(['attempt', id]));
+        attempt.board = {
+          stock: [], waste: [{ card: { suit: 'spades', rank: 13 }, faceUp: true }],
+          tableau: Array.from({ length: 7 }, () => []),
+          foundations: suits.map(suit => Array.from({ length: suit === 'spades' ? 12 : 13 },
+            (_, index) => ({ card: { suit, rank: index + 1 }, faceUp: true })))
+        };
+        await requestResult(store.put(attempt, ['attempt', id]));
+      });
+      const won = await applyAttemptAction(database, {
+        id, elapsedMs: 5000,
+        action: { type: 'move', from: { pile: 'waste' }, to: { pile: 'foundation', index: 3 } }
+      });
+      const history = await withTransaction(database, [KLONDIKE_STORE], 'readonly', transaction =>
+        requestResult(transaction.objectStore(KLONDIKE_STORE).getAll(
+          IDBKeyRange.bound(['undo', id], ['undo', id, []]))));
+      assert(won.outcome === 'won' && won.elapsedMs === 5000 && Number.isFinite(won.finishedAt),
+        'Winning result was not saved.');
+      assert(history.length === 0 && await readActiveAttempt(database) === null &&
+        await readLastRoute(database) === '#/games/klondike', 'Win did not clear active state and history.');
     }
   },
   {

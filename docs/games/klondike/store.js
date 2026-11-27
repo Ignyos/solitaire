@@ -2,6 +2,7 @@
 
 import { APPLICATION_STORE, SETTINGS_STORE, requestResult, withTransaction } from '../../core/storage.js?v=2026-10-21-23-35';
 import { dealKlondike } from './deal.js?v=2026-10-21-23-35';
+import { applyKlondikeAction } from './moves.js?v=2026-10-21-23-35';
 
 export const KLONDIKE_STORE = 'klondike';
 const LAYOUT_KEY = 'standard';
@@ -198,6 +199,81 @@ export function checkpointAttempt(database, { id, elapsedMs }) {
       throw new AttemptStateError();
     }
     attempt.elapsedMs = Math.max(attempt.elapsedMs, elapsedMs);
+    await requestResult(store.put(attempt, ['attempt', id]));
+    return attempt;
+  });
+}
+
+/**
+ * @param {IDBDatabase} database
+ * @param {string} id
+ * @returns {Promise<{ board: import('./deal.js?v=2026-10-21-23-35').KlondikeBoard, scoreDelta: number } | null>}
+ */
+export function readLastUndo(database, id) {
+  return withTransaction(database, [KLONDIKE_STORE], 'readonly', async transaction => {
+    const cursor = await requestResult(transaction.objectStore(KLONDIKE_STORE).openCursor(
+      IDBKeyRange.bound(['undo', id], ['undo', id, []]), 'prev'));
+    return cursor ? cursor.value : null;
+  });
+}
+
+/**
+ * @param {IDBDatabase} database
+ * @param {{ id: string, elapsedMs: number, action: import('./moves.js?v=2026-10-21-23-35').KlondikeAction }} input
+ * @returns {Promise<Object>}
+ */
+export function applyAttemptAction(database, { id, elapsedMs, action }) {
+  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) {
+    throw new TypeError('The attempt elapsed time must be valid.');
+  }
+  return withTransaction(database, [APPLICATION_STORE, KLONDIKE_STORE], 'readwrite', async transaction => {
+    const store = transaction.objectStore(KLONDIKE_STORE);
+    const activeId = await requestResult(store.get(ACTIVE_KEY));
+    const attempt = await requestResult(store.get(['attempt', id]));
+    if (activeId !== id || !attempt || attempt.outcome !== 'unfinished') throw new AttemptStateError();
+    const result = applyKlondikeAction(attempt.board, attempt.options.draw, action);
+    const previousBoard = attempt.board;
+    attempt.board = result.board;
+    attempt.score += result.scoreDelta;
+    attempt.moves += 1;
+    attempt.elapsedMs = Math.max(attempt.elapsedMs, elapsedMs);
+    if (result.won) {
+      attempt.outcome = 'won';
+      attempt.finishedAt = Date.now();
+      await requestResult(store.delete(IDBKeyRange.bound(['undo', id], ['undo', id, []])));
+      await requestResult(store.delete(ACTIVE_KEY));
+      await requestResult(transaction.objectStore(APPLICATION_STORE).put('#/games/klondike', 'last-route'));
+    } else {
+      await requestResult(store.add({ board: previousBoard, scoreDelta: result.scoreDelta },
+        ['undo', id, attempt.moves]));
+    }
+    await requestResult(store.put(attempt, ['attempt', id]));
+    return attempt;
+  });
+}
+
+/**
+ * @param {IDBDatabase} database
+ * @param {{ id: string, elapsedMs: number }} input
+ * @returns {Promise<Object>}
+ */
+export function undoAttemptAction(database, { id, elapsedMs }) {
+  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) {
+    throw new TypeError('The attempt elapsed time must be valid.');
+  }
+  return withTransaction(database, [KLONDIKE_STORE], 'readwrite', async transaction => {
+    const store = transaction.objectStore(KLONDIKE_STORE);
+    const activeId = await requestResult(store.get(ACTIVE_KEY));
+    const attempt = await requestResult(store.get(['attempt', id]));
+    if (activeId !== id || !attempt || attempt.outcome !== 'unfinished') throw new AttemptStateError();
+    const cursor = await requestResult(store.openCursor(
+      IDBKeyRange.bound(['undo', id], ['undo', id, []]), 'prev'));
+    if (!cursor) throw new AttemptStateError();
+    attempt.board = cursor.value.board;
+    attempt.score -= cursor.value.scoreDelta + 1;
+    attempt.moves += 1;
+    attempt.elapsedMs = Math.max(attempt.elapsedMs, elapsedMs);
+    await requestResult(cursor.delete());
     await requestResult(store.put(attempt, ['attempt', id]));
     return attempt;
   });

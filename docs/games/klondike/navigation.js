@@ -8,9 +8,11 @@ import { readGameSettings, saveGameOption, saveOptionsDisplay } from '../../core
 import { openGameOptions } from '../../shared-ui/game-options.js?v=2026-10-21-23-35';
 import {
   KLONDIKE_STORE, upgradeKlondikeStore, readActiveAttempt, readAttempt, readFinishedDeals,
-  createAttempt, retryAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
+  createAttempt, retryAttempt, checkpointAttempt, readLastUndo, applyAttemptAction,
+  undoAttemptAction, forfeitAttempt, AttemptStateError
 } from './store.js?v=2026-10-21-23-35';
 import { createKlondikeBoard } from './view.js?v=2026-10-21-23-35';
+import { applyKlondikeAction, findAutomaticMove, IllegalMoveError } from './moves.js?v=2026-10-21-23-35';
 
 const HOME_ROUTE = '#/home';
 const GAME_ROUTE = '#/games/klondike';
@@ -213,7 +215,7 @@ export async function createKlondikeNavigation({
   async function confirmForfeit(opener) {
     const body = document.createElement('div');
     const text = document.createElement('p');
-    text.textContent = 'Forfeit the current deal? Its time and moves will be saved.';
+    text.textContent = 'Forfeit the current deal?';
     const actions = document.createElement('div');
     actions.className = 'klondike-actions';
     const cancel = document.createElement('button');
@@ -253,10 +255,6 @@ export async function createKlondikeNavigation({
     const controls = [...dialog.querySelectorAll('button'), ...dialog.querySelectorAll('input')]
       .filter(control => !control.disabled);
     controls.forEach(control => { control.disabled = true; });
-    const status = document.createElement('p');
-    status.setAttribute('role', 'status');
-    status.textContent = 'Saving...';
-    body.append(status);
     try {
       await save(async () => {
         await action();
@@ -264,7 +262,6 @@ export async function createKlondikeNavigation({
       });
       return await readGameSettings(database, game);
     } finally {
-      status.remove();
       controls.forEach(control => { control.disabled = false; });
       settingsBusy = false;
     }
@@ -272,7 +269,7 @@ export async function createKlondikeNavigation({
 
   async function showGameOptions(opener, settings, start, replace) {
     return openGameOptions({
-      openModal, opener, definitions: game.options, values: settings.options, start, replace,
+      openModal, opener, gameName: game.name, definitions: game.options, values: settings.options, start, replace,
       canClose: () => !settingsBusy,
       onOptionChange: async (body, optionId, value) =>
         (await updateSetting(body, () => saveGameOption(database, game, optionId, value))).options,
@@ -469,9 +466,15 @@ export async function createKlondikeNavigation({
     return button;
   }
 
-  function renderBoard(attempt) {
+  function renderBoard(attempt, initialUndo) {
     displayedAttempt = attempt;
     clockBase = attempt?.elapsedMs ?? 0;
+    let lastUndo = initialUndo;
+    let boardBusy = false;
+    let scrollArea = null;
+    let boardElement = null;
+    let hint = null;
+    let cleanupBoard = null;
     const stats = document.createElement('div');
     stats.className = 'klondike-stats';
     const time = document.createElement('p');
@@ -481,19 +484,131 @@ export async function createKlondikeNavigation({
     timeValue.textContent = formatTime(clockBase);
     time.append(timeValue);
     const moves = document.createElement('p');
-    moves.textContent = `Moves: ${attempt?.moves ?? 0}`;
     const score = document.createElement('p');
-    score.textContent = `Score: ${attempt?.score ?? 0}`;
     const undo = document.createElement('button');
     undo.type = 'button';
     undo.className = 'klondike-undo';
-    undo.disabled = true;
     const undoIcon = document.createElement('span');
     undoIcon.setAttribute('aria-hidden', 'true');
     undoIcon.textContent = '\u21b6';
     undo.append(undoIcon, ' Undo');
     stats.append(time, moves, score, undo);
-    const { element, scrollArea, hint } = createKlondikeBoard(attempt?.board ?? null);
+    const boardHost = document.createElement('div');
+    const controller = new AbortController();
+    const updateHint = () => {
+      if (!boardElement || !scrollArea || !hint) return;
+      const bounds = boardElement.getBoundingClientRect();
+      hint.hidden = scrollArea.scrollWidth <= scrollArea.clientWidth &&
+        bounds.bottom <= window.innerHeight && bounds.top >= 0;
+    };
+
+    function renderPosition(current) {
+      const previousScroll = scrollArea?.scrollLeft ?? 0;
+      moves.textContent = `Moves: ${current?.moves ?? 0}`;
+      score.textContent = `Score: ${current?.score ?? 0}`;
+      undo.disabled = !current || current.outcome !== 'unfinished' || !lastUndo || boardBusy || !canWrite();
+      const result = createKlondikeBoard(current?.board ?? null, {
+        draw: current?.options.draw ?? 1,
+        disabled: !current || current.outcome !== 'unfinished' || boardBusy || !canWrite(),
+        onDraw: () => {
+          performAction({ type: 'draw' }).catch(error => reportError('Unable to draw cards:', error));
+        },
+        onMove: (from, to) => {
+          performAction({ type: 'move', from, to }).catch(error => reportError('Unable to move cards:', error));
+        },
+        onAutomaticMove: from => {
+          if (!displayedAttempt || boardBusy || !canWrite()) return;
+          const action = findAutomaticMove(displayedAttempt.board, displayedAttempt.options.draw, from);
+          if (action) performAction(action).catch(error => reportError('Unable to move cards:', error));
+        }
+      });
+      boardElement = result.element;
+      scrollArea = result.scrollArea;
+      hint = result.hint;
+      if (cleanupBoard) cleanupBoard();
+      cleanupBoard = result.cleanup;
+      boardHost.replaceChildren(boardElement);
+      scrollArea.scrollLeft = previousScroll;
+      scrollArea.addEventListener('scroll', updateHint);
+      updateHint();
+    }
+
+    async function performAction(action) {
+      const isUndo = action === null;
+      if (boardBusy || !displayedAttempt || !canWrite() || (isUndo && !lastUndo)) return;
+      boardBusy = true;
+      const id = displayedAttempt.id;
+      const restoreBoardFocus = boardHost.contains(document.activeElement);
+      try {
+        await pending;
+        if (!boardHost.isConnected || displayedAttempt?.id !== id ||
+            window.location.hash !== `${ATTEMPT_PREFIX}${encodeURIComponent(id)}` || !canWrite()) return;
+        const current = displayedAttempt;
+        const elapsedMs = elapsedNow();
+        let won = false;
+        const preview = isUndo
+          ? { ...current, board: lastUndo.board, score: current.score - lastUndo.scoreDelta - 1,
+            moves: current.moves + 1 }
+          : (() => {
+            const result = applyKlondikeAction(current.board, current.options.draw, action);
+            won = result.won;
+            return { ...current, board: result.board, score: current.score + result.scoreDelta,
+              moves: current.moves + 1 };
+          })();
+        if (won) cancelClock();
+        displayedAttempt = preview;
+        renderPosition(preview);
+        const saved = await save(() => isUndo
+          ? undoAttemptAction(database, { id, elapsedMs })
+          : applyAttemptAction(database, { id, elapsedMs, action }));
+        const latest = saved ?? await readActiveAttempt(database);
+        if (!boardHost.isConnected || window.location.hash !== `${ATTEMPT_PREFIX}${encodeURIComponent(id)}`) return;
+        if (saved?.outcome === 'won') {
+          activeAttempt = null;
+          displayedAttempt = null;
+          lastUndo = null;
+          clockBase = saved.elapsedMs;
+          boardBusy = false;
+          history.replaceState(null, '', GAME_ROUTE);
+          resumeButton.disabled = true;
+          forfeitButton.disabled = true;
+          renderPosition(saved);
+          updateTime();
+          showMessage('You won this deal!');
+          return;
+        }
+        if (!saved) {
+          cancelClock();
+          clockBase = latest?.elapsedMs ?? 0;
+        }
+        activeAttempt = latest;
+        displayedAttempt = latest?.id === id ? latest : null;
+        lastUndo = displayedAttempt ? await readLastUndo(database, id) : null;
+        if (!saved) startClock();
+      } catch (error) {
+        if (!(error instanceof IllegalMoveError)) throw error;
+        logError('Illegal Klondike move:', error);
+      } finally {
+        boardBusy = false;
+        if (boardHost.isConnected && window.location.hash === `${ATTEMPT_PREFIX}${encodeURIComponent(id)}`) {
+          renderPosition(displayedAttempt);
+          updateTime();
+          let focusTarget = isUndo ? undo : boardHost.querySelector('.klondike-stock');
+          if (action?.type === 'move' && restoreBoardFocus) {
+            const destination = [...boardHost.querySelectorAll('[data-destination]')]
+              .find(element => element.dataset.destination === JSON.stringify(action.to));
+            focusTarget = destination?.querySelector('[data-source]:last-child') ?? focusTarget;
+          }
+          if (focusTarget && !focusTarget.disabled && (isUndo || restoreBoardFocus) &&
+              (document.activeElement === document.body || document.activeElement === undo)) {
+            focusTarget.focus();
+          }
+        }
+      }
+    }
+    undo.addEventListener('click', () => {
+      performAction(null).catch(error => reportError('Unable to undo the move:', error));
+    });
     const menu = document.createElement('div');
     menu.className = 'klondike-game-menu game-card-menu';
     const trigger = document.createElement('button');
@@ -527,35 +642,33 @@ export async function createKlondikeNavigation({
       trigger.setAttribute('aria-expanded', 'false');
       await action(trigger);
     };
+    const resumeButton = actionButton('Resume', closeAnd(resume), !activeAttempt);
+    const forfeitButton = actionButton('Forfeit', closeAnd(forfeit), !activeAttempt || !canWrite());
     choices.append(
       menuLabel,
       actionButton('New Deal', closeAnd(newDeal), !canWrite()),
-      actionButton('Resume', closeAnd(resume), !activeAttempt),
+      resumeButton,
       actionButton('Retry', closeAnd(retry), !canWrite()),
-      actionButton('Forfeit', closeAnd(forfeit), !activeAttempt || !canWrite()),
+      forfeitButton,
       actionButton('Settings', closeAnd(openSettings), !canWrite()),
       actionButton('Rules', closeAnd(openRules))
     );
     menu.append(trigger, choices);
     gameMenuSlot.replaceChildren(menu);
-    content.replaceChildren(stats, element);
+    content.replaceChildren(stats, boardHost);
     if (!attempt) {
       const message = document.createElement('p');
       message.className = 'klondike-message';
       message.textContent = 'No active deal. Choose New Deal to start.';
       content.prepend(message);
     }
-    const updateHint = () => {
-      const bounds = element.getBoundingClientRect();
-      hint.hidden = scrollArea.scrollWidth <= scrollArea.clientWidth &&
-        bounds.bottom <= window.innerHeight && bounds.top >= 0;
-    };
-    const controller = new AbortController();
     window.addEventListener('resize', updateHint, { signal: controller.signal });
     window.addEventListener('scroll', updateHint, { signal: controller.signal });
-    scrollArea.addEventListener('scroll', updateHint, { signal: controller.signal });
-    boardCleanup = () => controller.abort();
-    updateHint();
+    boardCleanup = () => {
+      controller.abort();
+      if (cleanupBoard) cleanupBoard();
+    };
+    renderPosition(attempt);
     startClock();
   }
 
@@ -616,7 +729,11 @@ export async function createKlondikeNavigation({
     title.classList.toggle('app-title-game', route !== HOME_ROUTE);
     content.classList.toggle('game-content', route !== HOME_ROUTE);
     if (route === HOME_ROUTE) renderGallery(api);
-    else renderBoard(attempt);
+    else {
+      const lastUndo = attempt ? await readLastUndo(database, attempt.id) : null;
+      if (sequence !== routing) return;
+      renderBoard(attempt, lastUndo);
+    }
   }
 
   async function reloadCurrent() {

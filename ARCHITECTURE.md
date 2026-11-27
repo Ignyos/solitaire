@@ -537,6 +537,10 @@ lose unsaved progress.
 
 ## Game contract
 
+This is the approved target contract, not the current registry API. Klondike's
+integration is still explicitly wired; see the
+[game implementation guide](GAME-IMPLEMENTATION.md) for current boundaries.
+
 Every game exports one definition object containing:
 
 - Its id, name, and version.
@@ -576,6 +580,7 @@ Update it in the same change that adds, renames, or removes a shared export.
 | `games/registry.js` | `games` | Supplies the game gallery and each game's rules content |
 | `games/klondike/rules.js` | `klondikeRules` | Provides Klondike setup, objective, move, and variant guidance |
 | `games/klondike/deal.js` | `dealKlondike` | Builds a Klondike starting board from a supplied card order |
-| `games/klondike/store.js` | `KLONDIKE_STORE`, `AttemptStateError`, `upgradeKlondikeStore`, `readActiveAttempt`, `readAttempt`, `readFinishedDeals`, `createAttempt`, `retryAttempt`, `checkpointAttempt`, `forfeitAttempt` | Manages durable Klondike deals and attempts |
-| `games/klondike/view.js` | `createKlondikeBoard` | Renders a saved Klondike board |
+| `games/klondike/moves.js` | `IllegalMoveError`, `applyKlondikeAction`, `findAutomaticMove` | Applies legal Klondike moves and scoring and selects automatic moves without mutating the board |
+| `games/klondike/store.js` | `KLONDIKE_STORE`, `AttemptStateError`, `upgradeKlondikeStore`, `readActiveAttempt`, `readAttempt`, `readFinishedDeals`, `createAttempt`, `retryAttempt`, `checkpointAttempt`, `readLastUndo`, `applyAttemptAction`, `undoAttemptAction`, `forfeitAttempt` | Manages durable Klondike deals and attempts |
+| `games/klondike/view.js` | `createKlondikeBoard` | Renders the Klondike board and handles card interactions |
 | `games/klondike/navigation.js` | `createKlondikeNavigation` | Connects Klondike navigation and saved attempts |

@@ -22,6 +22,7 @@ Generated: 2026-10-12T22:06:35Z
   --color-card-red: #b51f32;
   --color-card-back: #315884;
   --color-card-back-detail: #d7e4f2;
+  --color-warning: #ffcf78;
   --shadow-menu: 0 .5rem 1.5rem rgb(0 0 0 / 35%);
   --space-sm: .5rem;
   --space-md: 1rem;
@@ -193,7 +194,7 @@ button, summary { cursor: pointer; }
 .klondike-card {
   width: var(--card-width);
   height: var(--card-height);
-  padding: .35rem;
+  padding: .2rem;
   border: 1px solid var(--color-card-ink);
   border-radius: .4rem;
   background: var(--color-card-face);
@@ -201,12 +202,50 @@ button, summary { cursor: pointer; }
   font-weight: 700;
 }
 .klondike-card-red { color: var(--color-card-red); }
+.klondike-card-dragging { visibility: hidden; }
+.klondike-card[data-source] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  touch-action: none;
+  user-select: none;
+}
+.klondike-card[data-source]:focus-visible, .klondike-card[aria-pressed="true"],
+.klondike-empty:focus-visible { outline: 3px solid var(--color-accent); outline-offset: -3px; }
+.klondike-empty {
+  display: block;
+  width: 100%;
+  min-height: var(--card-height);
+  border: 0;
+  border-radius: .4rem;
+  background: transparent;
+}
+.klondike-drag {
+  --card-width: 4rem;
+  --card-height: 5.5rem;
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+}
+.klondike-drag .klondike-card + .klondike-card { margin-top: -3.625rem; }
 .klondike-card-back {
   border: 3px solid var(--color-card-back-detail);
   background: var(--color-card-back);
 }
+.klondike-stock {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+.klondike-stock:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+.klondike-waste { display: flex; width: auto; min-width: var(--card-width); }
+.klondike-waste .klondike-card { flex: 0 0 var(--card-width); }
+.klondike-waste .klondike-card + .klondike-card { margin-left: -1.5rem; }
 .klondike-pile .klondike-card, .klondike-column .klondike-card { margin-left: -1px; }
-.klondike-column .klondike-card + .klondike-card { margin-top: -4.25rem; }
+.klondike-column .klondike-card + .klondike-card { margin-top: -3.625rem; }
 .klondike-game-menu .game-card-menu-trigger { font-size: 1rem; line-height: normal; }
 .klondike-game-menu .game-card-menu-trigger::after { content: " \25be"; }
 .klondike-game-menu .game-card-menu-trigger[aria-expanded="true"]::after { content: " \25b4"; }
@@ -248,7 +287,13 @@ button, summary { cursor: pointer; }
   border-radius: .5rem;
   padding: var(--space-md);
 }
+.game-options-warning {
+  border-left: .25rem solid var(--color-warning);
+  padding: var(--space-sm) var(--space-md);
+}
+.game-options-warning strong { color: var(--color-warning); }
 .game-options-preference, .game-settings label { display: block; margin: var(--space-md) 0; }
+.game-options-preference small { font-size: .8em; }
 .game-options-actions button, .game-settings button {
   margin: var(--space-sm);
   padding: .65rem .8rem;

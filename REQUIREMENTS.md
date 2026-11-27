@@ -87,9 +87,10 @@ Changes affect future new deals, not an active attempt or Retry.
 
 When the display preference is enabled, New Deal and a game-card title that
 starts a new deal open the options dialog. It offers Start and a "Don't show
-this again" checkbox that disables the preference immediately; explain that it
-can be changed in game Settings. If an attempt is unfinished, the same dialog
-warns that starting will forfeit it and offers Forfeit & Start. Closing or
+this again" checkbox that disables the preference immediately; beside it, use
+smaller text to explain that it can be changed in the named game's Settings.
+If an attempt is unfinished, the same dialog visually emphasizes the warning
+that starting will forfeit it and offers Forfeit & Start. Closing or
 cancelling leaves the attempt intact. When options are hidden, starting with an
 unfinished attempt still requires Forfeit confirmation; otherwise a new deal
 starts directly. Pause the active timer while these dialogs are open.
@@ -200,10 +201,9 @@ penalty; and measure active play rather than time away. These are nonbinding
 preferences. Each game decides whether to offer these features and defines
 its scoring and timing details.
 
-The guide's location and format are decided with the Klondike work. Code
-structure, import rules, the game contract, and the shared-code catalog are
-owned by `ARCHITECTURE.md`; the folder structure there is provisional until
-Klondike confirms it.
+See the [game implementation guide](GAME-IMPLEMENTATION.md). Code structure,
+import rules, the game contract, and the shared-code catalog are owned by
+`ARCHITECTURE.md`; the folder structure there remains provisional.
 
 ## 3b. Settings layers
 
@@ -230,6 +230,7 @@ Klondike confirms it.
 - Double-clicking a card is supported. When a move is available for that card,
   the game applies an available move; each game's rules define the decision
   logic for choosing which move.
+- An illegal move leaves the board unchanged and does not display a visual notice.
 
 ### Klondike decisions
 
@@ -330,6 +331,7 @@ History scroll position and unfinished option selections remain open.
   the same transaction. Navigation waits for a pending write rather than
   racing it.
 - Surface failed saves explicitly instead of silently losing progress.
+- Do not display a temporary in-progress message for saves.
 - Restore stable navigation context without reopening transient dialogs.
 
 ### Klondike storage decisions

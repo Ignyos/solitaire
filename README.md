@@ -8,9 +8,10 @@ Generated: 2026-10-12T22:06:35Z
 # Solitaire
 
 Static vanilla JavaScript browser/PWA starter, bootstrapped with the Ignyos
-Project Toolkit Full Profile in Greenfield mode. **Gameplay is not implemented.**
+Project Toolkit Full Profile in Greenfield mode. Klondike gameplay is in development.
 There is no compilation or package installation step. See [PM](PM/project-management.md)
-for work status and [AGENTS.md](AGENTS.md) for agent direction.
+for work status, [AGENTS.md](AGENTS.md) for agent direction, and the
+[game implementation guide](GAME-IMPLEMENTATION.md) for adding games.
 
 ## Local development
 
