@@ -33,7 +33,9 @@ The module-stamping and offline-verification slice was also accepted on
 2026-11-25.
 
 The developer approved closing this implementation scope on 2026-11-25.
-The item remains a dev release candidate; it has not been published.
+The item remains a dev release candidate. The rules implementation was
+deployed to the dev site by the successful deployment workflow following
+PR #7; this deployment did not change its PM lifecycle state.
 Rules access from the game-specific page and alignment with implemented
 gameplay are carried forward in task-002 (see the
 [PM index](../project-management.md)).
@@ -52,4 +54,7 @@ gameplay are carried forward in task-002 (see the
 - A disposable copy was stamped with a new release version and passed
   `build.ps1`. The stamped app loaded, then reopened the rules modal after
   its local server was stopped and the page reloaded.
-- No live dev publish or production release was run.
+- No live dev publish or production release was run as part of this verification.
+- The [dev deployment workflow](https://github.com/Ignyos/solitaire/actions/runs/45687279711)
+  succeeded after PR #7 was merged. This records the workflow result, not a
+  separate visual verification of the hosted site.

@@ -9,8 +9,10 @@ Generated: 2026-10-12T22:06:35Z
 
 ## Status
 
-Implementation is complete and integrated into `dev`. Awaiting dev-publish
-verification before promotion to the production release candidate.
+Implementation is complete and integrated into `dev`. The dev checkpoint on
+2026-10-22 promoted the item to production release candidate. Its changes were
+also merged into `main` through PR #6; the item remains a candidate for the
+normal production release process.
 
 ## Scope
 
