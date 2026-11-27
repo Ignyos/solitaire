@@ -43,3 +43,19 @@ Develop the game implementation guide alongside it for future games.
   reload, and cancelled/confirmed Forfeit.
 - Concurrent-window behavior was not verified. Card play and the rest of the
   task's acceptance criteria remain incomplete; this item stays in `current/`.
+
+## Approved slice: saved-deal navigation
+
+- On 2026-11-27, the developer approved the saved-deal/navigation slice:
+  durable deal creation and restoration, Home and game menus, confirmed
+  replacement and Forfeit, timer checkpoints, and save-error recovery.
+- The implementation remains local and uncommitted; it is not integrated into
+  `dev`. A route-save failure now reverts to the saved route without repeating
+  the failed write, and timer-checkpoint reversion restores the saved time.
+- `build.ps1`, module syntax checks, `git diff --check`, and all nine browser
+  deal and storage tests passed. Single-window browser checks covered reload,
+  Resume, replacement, both Forfeit entry points, modal timer pauses, injected
+  save failures and recovery, and offline reload. Recovery UI checks were manual.
+- Playable cards, functional Undo and Replay, installed-PWA testing, and
+  concurrent-window behavior were not covered. The remaining acceptance
+  criteria are incomplete; this item stays in `current/`.
