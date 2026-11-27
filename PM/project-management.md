@@ -23,7 +23,7 @@ Generated: 2026-10-12T22:06:35Z
 
 ## release-candidate/
 
-- (none)
+- [chore-003](release-candidate/chore-003.md)
 
 ## completed/
 
