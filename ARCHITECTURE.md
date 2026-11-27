@@ -574,6 +574,6 @@ Update it in the same change that adds, renames, or removes a shared export.
 | `games/registry.js` | `games` | Supplies the game gallery and each game's rules content |
 | `games/klondike/rules.js` | `klondikeRules` | Provides Klondike setup, objective, move, and variant guidance |
 | `games/klondike/deal.js` | `dealKlondike` | Builds a Klondike starting board from a supplied card order |
-| `games/klondike/store.js` | `KLONDIKE_STORE`, `AttemptStateError`, `upgradeKlondikeStore`, `readActiveAttempt`, `readAttempt`, `createAttempt`, `checkpointAttempt`, `forfeitAttempt` | Manages durable Klondike deals and attempts |
+| `games/klondike/store.js` | `KLONDIKE_STORE`, `AttemptStateError`, `upgradeKlondikeStore`, `readActiveAttempt`, `readAttempt`, `readFinishedDeals`, `createAttempt`, `retryAttempt`, `checkpointAttempt`, `forfeitAttempt` | Manages durable Klondike deals and attempts |
 | `games/klondike/view.js` | `createKlondikeBoard` | Renders a saved Klondike board |
 | `games/klondike/navigation.js` | `createKlondikeNavigation` | Connects Klondike navigation and saved attempts |

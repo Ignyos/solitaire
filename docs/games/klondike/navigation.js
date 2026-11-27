@@ -5,8 +5,8 @@ import { openStorage } from '../../core/storage.js?v=2026-10-21-23-35';
 import { readLastRoute, saveLastRoute } from '../../core/navigation-context.js?v=2026-10-21-23-35';
 import { saveWithRetries } from '../../core/save-coordinator.js?v=2026-10-21-23-35';
 import {
-  KLONDIKE_STORE, upgradeKlondikeStore, readActiveAttempt, readAttempt,
-  createAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
+  KLONDIKE_STORE, upgradeKlondikeStore, readActiveAttempt, readAttempt, readFinishedDeals,
+  createAttempt, retryAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
 } from './store.js?v=2026-10-21-23-35';
 import { createKlondikeBoard } from './view.js?v=2026-10-21-23-35';
 
@@ -254,6 +254,66 @@ export async function createKlondikeNavigation({
     window.location.hash = `${ATTEMPT_PREFIX}${encodeURIComponent(created.id)}`;
   }
 
+  async function retry(opener) {
+    if (!canWrite()) return;
+    await pauseClock();
+    let started = false;
+    try {
+      const deals = await readFinishedDeals(database);
+      const body = document.createElement('div');
+      let selectedAttemptId = null;
+      if (deals.length === 0) {
+        const message = document.createElement('p');
+        message.textContent = 'No finished deals yet.';
+        body.append(message);
+      } else {
+        const list = document.createElement('ul');
+        list.className = 'klondike-retry-list';
+        for (const { latest, attemptCount } of deals) {
+          const item = document.createElement('li');
+          const heading = document.createElement('h3');
+          heading.textContent = `Deal #${latest.dealNumber}`;
+          const details = document.createElement('p');
+          const outcome = latest.outcome === 'won' ? 'Won' : 'Forfeited';
+          details.textContent = `Draw ${latest.options.draw} | ${outcome} | Time: ${formatTime(latest.elapsedMs)} | ` +
+            `Moves: ${latest.moves} | Score: ${latest.score} | Attempts: ${attemptCount}`;
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = 'Retry';
+          button.setAttribute('aria-label', `Retry deal #${latest.dealNumber}`);
+          button.addEventListener('click', () => {
+            selectedAttemptId = latest.id;
+            button.closest('dialog').close();
+          });
+          item.append(heading, details, button);
+          list.append(item);
+        }
+        body.append(list);
+      }
+      await openModal({ title: 'Retry a deal', content: body, opener });
+      const sourceAttemptId = selectedAttemptId;
+      if (!sourceAttemptId) return;
+      activeAttempt = await readActiveAttempt(database);
+      if (activeAttempt && !await confirmForfeit(opener)) return;
+      const replace = activeAttempt
+        ? { id: activeAttempt.id, elapsedMs: activeAttempt.elapsedMs }
+        : null;
+      const attemptId = crypto.randomUUID();
+      const created = await save(() => retryAttempt(database, {
+        attemptId, sourceAttemptId, replace
+      }));
+      if (!created) {
+        await reloadCurrent();
+        return;
+      }
+      activeAttempt = created;
+      started = true;
+      window.location.hash = `${ATTEMPT_PREFIX}${encodeURIComponent(created.id)}`;
+    } finally {
+      if (!started) startClock();
+    }
+  }
+
   async function resume() {
     if (!storageReady) return;
     const latest = await readActiveAttempt(database);
@@ -375,7 +435,7 @@ export async function createKlondikeNavigation({
       menuLabel,
       actionButton('New Deal', closeAnd(newDeal), !canWrite()),
       actionButton('Resume', closeAnd(resume), !activeAttempt),
-      actionButton('Replay', closeAnd(async () => {}), true),
+      actionButton('Retry', closeAnd(retry), !canWrite()),
       actionButton('Forfeit', closeAnd(forfeit), !activeAttempt || !canWrite()),
       actionButton('Rules', closeAnd(openRules))
     );
@@ -474,6 +534,7 @@ export async function createKlondikeNavigation({
     canWrite,
     titleAction,
     newDeal,
+    retry,
     resume,
     forfeit,
     openRules,

@@ -161,10 +161,10 @@
       resumeButton.type = 'button';
       resumeButton.textContent = 'Resume';
       resumeButton.disabled = game.id !== 'klondike' || !app.activeAttempt;
-      const replayButton = document.createElement('button');
-      replayButton.type = 'button';
-      replayButton.textContent = 'Replay';
-      replayButton.disabled = true;
+      const retryButton = document.createElement('button');
+      retryButton.type = 'button';
+      retryButton.textContent = 'Retry';
+      retryButton.disabled = game.id !== 'klondike' || !app.canWrite();
       const forfeitButton = document.createElement('button');
       forfeitButton.type = 'button';
       forfeitButton.textContent = 'Forfeit';
@@ -203,11 +203,15 @@
         closeCardMenu();
         app.resume().catch(error => app.reportError('Unable to resume the deal:', error));
       });
+      retryButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.retry(trigger).catch(error => app.reportError('Unable to retry a deal:', error));
+      });
       forfeitButton.addEventListener('click', () => {
         closeCardMenu();
         app.forfeit(trigger).catch(error => app.reportError('Unable to forfeit the deal:', error));
       });
-      choices.append(newDealButton, resumeButton, replayButton, forfeitButton, rulesButton);
+      choices.append(newDealButton, resumeButton, retryButton, forfeitButton, rulesButton);
       menu.append(trigger, choices);
       cardHeader.append(menu, title);
       card.append(cardHeader, description);

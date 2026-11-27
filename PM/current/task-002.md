@@ -49,8 +49,8 @@ Develop the game implementation guide alongside it for future games.
 - On 2026-11-27, the developer approved the saved-deal/navigation slice:
   durable deal creation and restoration, Home and game menus, confirmed
   replacement and Forfeit, timer checkpoints, and save-error recovery.
-- The implementation remains local and uncommitted; it is not integrated into
-  `dev`. A route-save failure now reverts to the saved route without repeating
+- The implementation is committed on the task branch but not integrated into
+  `dev`. A route-save failure reverts to the saved route without repeating
   the failed write, and timer-checkpoint reversion restores the saved time.
 - `build.ps1`, module syntax checks, `git diff --check`, and all nine browser
   deal and storage tests passed. Single-window browser checks covered reload,
@@ -59,3 +59,17 @@ Develop the game implementation guide alongside it for future games.
 - Playable cards, functional Undo and Replay, installed-PWA testing, and
   concurrent-window behavior were not covered. The remaining acceptance
   criteria are incomplete; this item stays in `current/`.
+
+## Approved slice: Retry
+
+- On 2026-11-27, the developer approved renaming the deal-based Replay action
+  to Retry and the initial Retry implementation. The picker shows finished
+  deal results and attempt counts; Retry starts a new attempt with the same
+  layout and options and confirms before replacing an unfinished attempt.
+- `build.ps1`, syntax and whitespace checks, and seven browser storage tests
+  passed. Browser checks covered both menu entry points, cancellation,
+  replacement, restoration, modal timer pause, phone-width layout, and offline
+  Retry. The Retry UI checks were manual.
+- Playable cards, functional Undo, installed-PWA testing, and concurrent-window
+  behavior were not covered. The implementation is on the task branch and not
+  integrated into `dev`; the item remains in `current/`.

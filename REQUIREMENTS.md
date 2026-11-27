@@ -27,10 +27,10 @@ follow later using the game implementation guide (section 3a).
 - The application home/splash page presents a card gallery of available games.
 - Selecting a game card title resumes that game's unfinished attempt, or starts
   a new deal with its saved game-type options if there is no unfinished attempt.
-- Each game card menu offers New Deal, Resume, Replay, Forfeit, and Rules,
+- Each game card menu offers New Deal, Resume, Retry, Forfeit, and Rules,
   with Rules last. New Deal
   starts with saved game-type options. Resume opens the unfinished attempt.
-  Replay selects a finished deal to retry from its original layout and options;
+  Retry selects a finished deal to retry from its original layout and options;
   it does not play back recorded moves.
 - Switching between game types, such as Klondike and Spider, is done through
   the application home.
@@ -78,7 +78,7 @@ retrying a finished deal while one is unfinished asks the player to confirm
 forfeiting it first. On confirmation, record its forfeited outcome, elapsed
 time, and move count; cancellation leaves it unchanged.
 
-The Klondike card-menu Replay action opens a modal with one compact card per
+The Klondike Retry action opens a modal with one compact card per
 finished deal. Each card shows the deal number, draw option, latest finished
 outcome, time, moves, score, and the total number of started attempts for that
 deal, including an unfinished attempt. Its Retry action starts the same
@@ -275,7 +275,7 @@ Klondike confirms it.
 - Automatic consequences of a user action, such as an automatic card flip, are
   undone together with that action as one step.
 - When an attempt is won or forfeited, its stored move history is deleted in
-  the same transaction that records the outcome. Replay is not planned.
+  the same transaction that records the outcome. Move-by-move playback is not planned.
 
 - Redo is explicitly out of scope and is not expected to be introduced.
 
@@ -842,3 +842,5 @@ This is a historical record; later decisions supersede earlier direction.
 - 2026-11-27: Owner removed the multi-window coordination requirement. Concurrent
   tabs or windows may overwrite or corrupt progress; ordinary single-window
   durability and save-error handling remain required.
+- 2026-11-27: Owner renamed the deal-based Replay action to Retry to distinguish
+  starting the same deal again from watching a recording of an earlier attempt.

@@ -58,6 +58,58 @@ export function readAttempt(database, attemptId) {
 
 /**
  * @param {IDBDatabase} database
+ * @returns {Promise<Array<{ latest: Object, attemptCount: number }>>}
+ */
+export function readFinishedDeals(database) {
+  return withTransaction(database, [KLONDIKE_STORE], 'readonly', async transaction => {
+    const store = transaction.objectStore(KLONDIKE_STORE);
+    const attempts = await requestResult(store.getAll(IDBKeyRange.bound(['attempt'], ['attempt', []])));
+    const deals = new Map();
+    for (const attempt of attempts) {
+      const key = JSON.stringify([attempt.layoutKey, attempt.dealNumber]);
+      if (!deals.has(key)) deals.set(key, { latest: null, attemptCount: 0 });
+      const entry = deals.get(key);
+      entry.attemptCount += 1;
+      if (attempt.outcome === 'unfinished') continue;
+      if ((attempt.outcome !== 'forfeit' && attempt.outcome !== 'won') ||
+          !Number.isFinite(attempt.finishedAt)) {
+        throw new Error('A saved Klondike attempt has an invalid outcome or finish time.');
+      }
+      if (!entry.latest || attempt.finishedAt > entry.latest.finishedAt ||
+          (attempt.finishedAt === entry.latest.finishedAt && attempt.startedAt > entry.latest.startedAt)) {
+        entry.latest = attempt;
+      }
+    }
+    return Array.from(deals.values()).filter(entry => entry.latest);
+  });
+}
+
+async function replaceActiveAttempt(store, replace) {
+  const activeId = await requestResult(store.get(ACTIVE_KEY));
+  if ((activeId === undefined) !== (replace === null) ||
+      (replace && activeId !== replace.id)) {
+    throw new AttemptStateError();
+  }
+  if (!replace) return;
+  const old = await requestResult(store.get(['attempt', activeId]));
+  if (!old || old.outcome !== 'unfinished') throw new AttemptStateError();
+  old.outcome = 'forfeit';
+  old.elapsedMs = Math.max(old.elapsedMs, replace.elapsedMs);
+  old.finishedAt = Date.now();
+  await requestResult(store.put(old, ['attempt', activeId]));
+  await requestResult(store.delete(IDBKeyRange.bound(['undo', activeId], ['undo', activeId, []])));
+}
+
+async function saveNewAttempt(transaction, attempt) {
+  const store = transaction.objectStore(KLONDIKE_STORE);
+  await requestResult(store.add(attempt, ['attempt', attempt.id]));
+  await requestResult(store.put(attempt.id, ACTIVE_KEY));
+  await requestResult(transaction.objectStore(APPLICATION_STORE).put(
+    `#/games/klondike/attempts/${encodeURIComponent(attempt.id)}`, 'last-route'));
+}
+
+/**
+ * @param {IDBDatabase} database
  * @param {{ attemptId: string, cards: import('./deal.js?v=2026-10-21-23-35').Card[], fingerprint: string, replace: { id: string, elapsedMs: number } | null }} input
  * @returns {Promise<Object>}
  */
@@ -72,23 +124,7 @@ export function createAttempt(database, { attemptId, cards, fingerprint, replace
   return withTransaction(database, [APPLICATION_STORE, SETTINGS_STORE, KLONDIKE_STORE], 'readwrite',
     async transaction => {
       const store = transaction.objectStore(KLONDIKE_STORE);
-      const activeId = await requestResult(store.get(ACTIVE_KEY));
-      if ((activeId === undefined) !== (replace === null) ||
-          (replace && activeId !== replace.id)) {
-        throw new AttemptStateError();
-      }
-
-      if (replace) {
-        const old = await requestResult(store.get(['attempt', activeId]));
-        if (!old || old.outcome !== 'unfinished') {
-          throw new AttemptStateError();
-        }
-        old.outcome = 'forfeit';
-        old.elapsedMs = Math.max(old.elapsedMs, replace.elapsedMs);
-        old.finishedAt = Date.now();
-        await requestResult(store.put(old, ['attempt', activeId]));
-        await requestResult(store.delete(IDBKeyRange.bound(['undo', activeId], ['undo', activeId, []])));
-      }
+      await replaceActiveAttempt(store, replace);
 
       const savedDraw = await requestResult(transaction.objectStore(SETTINGS_STORE).get(DRAW_SETTING));
       const draw = savedDraw === undefined ? 1 : savedDraw;
@@ -104,10 +140,44 @@ export function createAttempt(database, { attemptId, cards, fingerprint, replace
       };
       await requestResult(store.put(dealNumber, counterKey));
       await requestResult(store.add(deal, ['deal', LAYOUT_KEY, dealNumber]));
-      await requestResult(store.add(attempt, ['attempt', attemptId]));
-      await requestResult(store.put(attemptId, ACTIVE_KEY));
-      await requestResult(transaction.objectStore(APPLICATION_STORE).put(
-        `#/games/klondike/attempts/${encodeURIComponent(attemptId)}`, 'last-route'));
+      await saveNewAttempt(transaction, attempt);
+      return attempt;
+    });
+}
+
+/**
+ * @param {IDBDatabase} database
+ * @param {{ attemptId: string, sourceAttemptId: string, replace: { id: string, elapsedMs: number } | null }} input
+ * @returns {Promise<Object>}
+ */
+export function retryAttempt(database, { attemptId, sourceAttemptId, replace }) {
+  if (typeof attemptId !== 'string' || !attemptId ||
+      typeof sourceAttemptId !== 'string' || !sourceAttemptId ||
+      (replace && (!Number.isFinite(replace.elapsedMs) || replace.elapsedMs < 0))) {
+    throw new TypeError('A retry requires valid attempt identifiers and elapsed time.');
+  }
+  return withTransaction(database, [APPLICATION_STORE, KLONDIKE_STORE], 'readwrite',
+    async transaction => {
+      const store = transaction.objectStore(KLONDIKE_STORE);
+      const source = await requestResult(store.get(['attempt', sourceAttemptId]));
+      if (!source || (source.outcome !== 'forfeit' && source.outcome !== 'won')) {
+        throw new AttemptStateError();
+      }
+      const deal = await requestResult(store.get(['deal', source.layoutKey, source.dealNumber]));
+      if (!deal || deal.dealingVersion !== DEALING_VERSION) {
+        throw new Error('The saved deal is missing or uses an unsupported dealing version.');
+      }
+      if (source.options?.draw !== 1 && source.options?.draw !== 3) {
+        throw new Error('The saved Klondike draw option is invalid.');
+      }
+      const board = dealKlondike(deal.cards);
+      await replaceActiveAttempt(store, replace);
+      const attempt = {
+        id: attemptId, layoutKey: source.layoutKey, dealNumber: source.dealNumber,
+        options: { ...source.options }, board, score: 0, moves: 0, elapsedMs: 0,
+        outcome: 'unfinished', startedAt: Date.now()
+      };
+      await saveNewAttempt(transaction, attempt);
       return attempt;
     });
 }

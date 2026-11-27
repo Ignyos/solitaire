@@ -3,8 +3,8 @@ import { openStorage, requestResult, withTransaction } from '../docs/core/storag
 import { readLastRoute, saveLastRoute } from '../docs/core/navigation-context.js';
 import { saveWithRetries } from '../docs/core/save-coordinator.js';
 import {
-  KLONDIKE_STORE, upgradeKlondikeStore, createAttempt, readActiveAttempt,
-  checkpointAttempt, forfeitAttempt, AttemptStateError
+  KLONDIKE_STORE, upgradeKlondikeStore, createAttempt, readActiveAttempt, readFinishedDeals,
+  retryAttempt, checkpointAttempt, forfeitAttempt, AttemptStateError
 } from '../docs/games/klondike/store.js';
 
 function assert(condition, message) {
@@ -52,6 +52,7 @@ const tests = [
       assert(attempt.board.tableau.length === 7 && attempt.board.stock.length === 24, 'Wrong board.');
       const restored = await readActiveAttempt(database);
       assert(restored.id === 'first' && restored.outcome === 'unfinished', 'Attempt was not restored.');
+      assert((await readFinishedDeals(database)).length === 0, 'Unfinished deals must not appear in Retry.');
       const deal = await withTransaction(database, [KLONDIKE_STORE], 'readonly', transaction =>
         requestResult(transaction.objectStore(KLONDIKE_STORE).get(['deal', 'standard', 1])));
       assert(JSON.stringify(deal.cards) === JSON.stringify(cards), 'Original card order was not saved.');
@@ -100,6 +101,72 @@ const tests = [
         requestResult(transaction.objectStore(KLONDIKE_STORE).get(['attempt', 'second'])));
       assert(attempt.outcome === 'forfeit' && attempt.elapsedMs === 6000,
         'Forfeit did not preserve the elapsed time.');
+    }
+  },
+  {
+    name: 'Retries a finished deal with its original layout and options',
+    async run() {
+      const history = await readFinishedDeals(database);
+      assert(history.length === 2, 'Expected one entry for each finished deal.');
+      const first = history.find(entry => entry.latest.id === 'first');
+      assert(first && first.attemptCount === 1 && first.latest.elapsedMs === 14000,
+        'The finished deal summary is incorrect.');
+      await withTransaction(database, ['settings'], 'readwrite', async transaction => {
+        await requestResult(transaction.objectStore('settings').put(3, ['klondike', 'draw']));
+      });
+      const retried = await retryAttempt(database, {
+        attemptId: 'retry-first', sourceAttemptId: 'first', replace: null
+      });
+      assert(retried.dealNumber === 1 && retried.options.draw === 1,
+        'Retry changed the deal identity or its original option.');
+      assert(JSON.stringify(retried.board) === JSON.stringify(first.latest.board),
+        'Retry did not reproduce the original layout.');
+      assert(retried.moves === 0 && retried.score === 0 && retried.elapsedMs === 0,
+        'Retry did not reset the attempt statistics.');
+      const updated = (await readFinishedDeals(database)).find(entry => entry.latest.id === 'first');
+      assert(updated.attemptCount === 2, 'Attempt count must include an unfinished retry.');
+      assert(await readLastRoute(database) === '#/games/klondike/attempts/retry-first',
+        'Retry route was not saved.');
+    }
+  },
+  {
+    name: 'Atomically replaces the active attempt when retrying',
+    async run() {
+      await withTransaction(database, [KLONDIKE_STORE], 'readwrite', async transaction => {
+        const store = transaction.objectStore(KLONDIKE_STORE);
+        const active = await requestResult(store.get(['attempt', 'retry-first']));
+        active.moves = 5;
+        active.score = 20;
+        await requestResult(store.put(active, ['attempt', 'retry-first']));
+        const source = await requestResult(store.get(['attempt', 'second']));
+        source.options.draw = 3;
+        await requestResult(store.put(source, ['attempt', 'second']));
+      });
+      await rejectsWith(() => retryAttempt(database, {
+        attemptId: 'invalid-retry', sourceAttemptId: 'retry-first',
+        replace: { id: 'retry-first', elapsedMs: 2000 }
+      }), AttemptStateError);
+      await rejectsWith(() => retryAttempt(database, {
+        attemptId: 'retry-first', sourceAttemptId: 'second',
+        replace: { id: 'retry-first', elapsedMs: 2000 }
+      }), DOMException);
+      const preserved = await readActiveAttempt(database);
+      assert(preserved.id === 'retry-first' && preserved.outcome === 'unfinished',
+        'A failed retry must not forfeit the active attempt.');
+      const replacement = await retryAttempt(database, {
+        attemptId: 'retry-second', sourceAttemptId: 'second',
+        replace: { id: 'retry-first', elapsedMs: 2000 }
+      });
+      assert(replacement.dealNumber === 2 && replacement.options.draw === 3,
+        'Retry did not use the selected finished deal.');
+      const history = await readFinishedDeals(database);
+      const first = history.find(entry => entry.latest.id === 'retry-first');
+      const second = history.find(entry => entry.latest.id === 'second');
+      assert(first && first.attemptCount === 2 && first.latest.elapsedMs === 2000 &&
+        first.latest.moves === 5 && first.latest.score === 20,
+        'Replacement did not preserve the latest finished result.');
+      assert(second && second.attemptCount === 2 && (await readActiveAttempt(database)).id === 'retry-second',
+        'Replacement or unfinished attempt count was not saved.');
     }
   },
   {
