@@ -9,7 +9,7 @@ Generated: 2026-10-12T22:06:35Z
 
 ## backlog/
 
-- (none)
+- [task-003](backlog/task-003.md)
 
 ## current/
 
