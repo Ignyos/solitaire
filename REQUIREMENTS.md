@@ -25,20 +25,23 @@ follow later using the game implementation guide (section 3a).
 ### Application home
 
 - The application home/splash page presents a card gallery of available games.
-- Selecting a gallery entry navigates to that game's own home/landing page.
+- Selecting a game card title resumes that game's unfinished attempt, or starts
+  a new deal with its saved game-type options if there is no unfinished attempt.
+- Each game card menu offers New Deal, Resume, Replay, Forfeit, and Rules,
+  with Rules last. New Deal
+  starts with saved game-type options. Resume opens the unfinished attempt.
+  Replay selects a finished deal to retry from its original layout and options;
+  it does not play back recorded moves.
 - Switching between game types, such as Klondike and Spider, is done through
   the application home.
-- Preserve the intended existing `docs/index.html` content from its `<h1>`
-  element upward, including the current branding and heading.
-- Replace the existing content below that heading with the game gallery.
-  Gallery card appearance and responsive layout remain to be designed.
-- Starting another deal of the same game is done from that game's home page,
-  rather than by using the application-level gallery to start a deal directly.
+- Show the Solitaire heading in the compact top bar beside the application menu,
+  with the game gallery below. Gallery card appearance remains to be designed.
+- A new deal can also be started from that game's home page.
 
 ### Persistent menu
 
-A menu control is always present at the top left of the viewport, regardless
-of application state or current page/game.
+An application menu control is at the top left of every page and game. The
+top bar scrolls with the page to preserve space on short screens.
 
 | Option | Required behavior |
 |---|---|
@@ -70,6 +73,17 @@ Every offered game has its own home/landing page with:
 The history must distinguish unfinished attempts from finished attempts.
 History ordering and changing options while a deal is in progress are open.
 
+Only one attempt may be unfinished per game type. Starting a new deal or
+retrying a finished deal while one is unfinished asks the player to confirm
+forfeiting it first. On confirmation, record its forfeited outcome, elapsed
+time, and move count; cancellation leaves it unchanged.
+
+The Klondike card-menu Replay action opens a modal with one compact card per
+finished deal. Each card shows the deal number, draw option, latest finished
+outcome, time, moves, score, and the total number of started attempts for that
+deal, including an unfinished attempt. Its Retry action starts the same
+original layout and options. A deal with no finished attempt does not appear.
+
 ### Ending an attempt
 
 - Forfeit is currently the only way to end an attempt without winning. A
@@ -78,6 +92,9 @@ History ordering and changing options while a deal is in progress are open.
 - Each game has an in-game menu for game-specific actions such as Forfeit. It
   uses a consistent location and appearance across games. Its placement relative
   to the persistent application menu is designed with the game layouts.
+- Forfeit asks for confirmation. From the game screen, confirmation leaves that
+  screen showing an empty board; cancellation resumes the game and its timer.
+  From the home card menu, confirmation or cancellation leaves Home visible.
 
 ### Deal identity
 
@@ -211,15 +228,17 @@ Klondike confirms it.
 - The board places four foundations at the upper left, the stock at the upper
   right with the waste beside it, and seven tableau columns below. The
   application menu remains available; no ads are shown.
-- A bottom-left button labeled "Game" with a menu icon opens the game-specific
-  menu. It includes Rules, New Game, and Forfeit. New Game returns to the
-  Klondike home page to choose options, leaving the current attempt unfinished
-  and resumable. Forfeit asks for confirmation before ending the attempt.
+- A Klondike dropdown at the right of the top bar opens a menu headed
+  "Klondike". It offers the same options as the home card menu, with
+  Rules last. The game screen does not display Solitaire or the deal number
+  in the top bar.
 - The initial release focuses on agreed core gameplay and application behavior,
   including persistence, history, Retry, Undo, and rules access. Hints,
-  automatic completion, statistics, and sound are deferred beyond the initial
-  release.
-- Display Time, Moves, and Score. Score starts at 0 and may become negative:
+  automatic completion, aggregate statistics beyond the agreed deal history,
+  and sound are deferred beyond the initial release.
+- Display Time, Moves, and Score with a labeled Undo control alongside them.
+  Disable Undo when no action can be undone. Score starts at 0 and may become
+  negative:
   - +1 for moving a card from the waste or tableau to a foundation.
   - -1 for moving a card from a foundation back to the tableau.
   - +1 for revealing a face-down tableau card.
@@ -236,7 +255,7 @@ Klondike confirms it.
   while the player is thinking; pauses when the app is backgrounded or closed,
   or a modal is open; and stops when the attempt ends.
 - While play is active, checkpoint the attempt's elapsed time approximately
-  once per second and also when play pauses. On reopening, restore the last
+  every 15 seconds and also when play pauses. On reopening, restore the last
   successfully saved elapsed time without counting time the app was closed.
   An unexpected close can lose time since the last successful checkpoint;
   browser scheduling or an interrupted write can increase that loss.
@@ -268,8 +287,8 @@ Klondike confirms it.
   Undo. Home, pause, and leaving the game do not require an independent board
   progress save operation; the Klondike timer checkpoints described above are
   separate from board progress.
-- Do not impose an application-defined limit on unfinished deals per game.
-  Browser storage capacity still applies; unlimited storage is not promised.
+- Allow at most one unfinished attempt per game type. Browser storage capacity
+  still applies; unlimited storage is not promised.
 - When a user closes the application mid-game or at another point and returns,
   restore where they left off seamlessly.
 - Restoration includes the saved gameplay position and application context,
@@ -286,7 +305,7 @@ History scroll position and unfinished option selections remain open.
 ### Approved persistence behavior
 
 - Persist a complete current snapshot per attempt: piles, card order/orientation,
-  game-specific state, selected options, outcome, and revision. Restoration
+  game-specific state, selected options, and outcome. Restoration
   loads this snapshot directly rather than replaying the move history; the move
   history serves Undo.
 - Save each move, its automatic consequences, and its move-history entry
@@ -308,8 +327,8 @@ History scroll position and unfinished option selections remain open.
   the move count. Recording a win or forfeit and removing the attempt's Undo
   entries are atomic.
 - Coordinate elapsed-time checkpoints with move and Undo saves so no write
-  overwrites newer board progress or timer data. Checkpoints use the existing
-  ownership, revision-checking, and save-error safeguards.
+  within the same window overwrites newer board progress or timer data.
+  Checkpoints use the existing save-error safeguards.
 
 **Remaining proposals, not approved:**
 
@@ -317,7 +336,7 @@ History scroll position and unfinished option selections remain open.
   cannot disagree after an interrupted write.
 - Store stable navigation context separately using route, game id, and attempt
   id where relevant; its exact storage structure is not decided.
-- Query/page history rather than loading every unfinished attempt into memory.
+- Query/page history rather than loading every finished attempt into memory.
 
 **Open:** define the exact durable record schema. Per-action snapshots, atomic
 transitions, and waiting for writes before navigation are approved; field names
@@ -334,43 +353,12 @@ stored.
 - Keep the unsaved move in memory so a successful Retry saves it. Revert to last
   save discards it and reloads the last durable snapshot.
 
-Revision mismatches are handled separately from storage failures. Stop further
-moves, show a friendly message that progress changed elsewhere, and offer to
-load the latest saved snapshot; this discards the unsaved action. Do not retry
-or replay the stale action automatically.
-
 ### Concurrent tabs/windows
 
-Two tabs or an installed PWA window and browser tab can share one origin's
-IndexedDB. Without coordination, stale snapshots can overwrite newer progress,
-settings, outcomes, or the last-view record even for a single user.
-
-Only one application window per origin may write at a time. Other tabs/windows
-show an explicit already-open/read-only notice. Coordinate ownership and use
-transactional revision checks to prevent stale overwrites.
-
-When a database upgrade is requested, every open window closes its connection
-on `versionchange` and stops storage activity. The requesting window waits for
-old connections to close before upgrading. Displaced windows show a friendly
-update-and-reload notice rather than continuing with a closed connection.
-
-Use an exclusive Web Lock where supported, with a tested fail-closed fallback
-for supported browsers. Use revision checks inside IndexedDB transactions as an
-additional stale-write guard, and BroadcastChannel for state/ownership
-notifications, not as the lock. Reload current state, including move history,
-when ownership is acquired; never carry a stale in-memory undo stack into a
-newly acquired session. Never take ownership from an active window without the
-user's explicit action.
-
-**Ownership recovery:** how a read-only window becomes the writable one.
-
-- When the writable window closes normally, a waiting window takes over
-  automatically and reloads the latest saved state.
-- When the writable window crashes or is killed, the browser releases its lock
-  during cleanup and a waiting window takes over the same way. A frozen or
-  sleeping window may hold ownership indefinitely.
-- A read-only window offers "Use here instead". Choosing it demotes the other
-  window to read-only; this window reloads the latest saved state and continues.
+Multiple tabs or windows sharing the same browser storage are not coordinated.
+The application does not provide ownership, takeover, or stale-write protection
+between them. Concurrent use can overwrite progress or leave it inconsistent;
+the player accepts that risk.
 
 Browser storage eviction/clearing may remove saved data; do not promise
 recovery from browser-deleted data or rely solely on a close event to implement
@@ -533,6 +521,8 @@ Defaults:
 
 - On small screens, the board may scroll. Visually indicate when part of the
   board is offscreen and a scroll action is needed to view it.
+- Keep time, moves, and score compact, preserve readable cards rather than
+  shrinking them excessively, and center the board on wider screens.
 - The initial implementation does not include keyboard play or screen-reader
   access for the card board. This does not change the keyboard requirements
   for controls outside the board.
@@ -610,8 +600,9 @@ or rejection of any option.
 Beyond the Klondike decisions above, scoring in other games, timers in other
 games, accounts, and cloud sync are not specified by these notes. Their absence
 here is not a decision to add them or a permanent decision to prohibit them.
-Hints, automatic completion, statistics, and sound are deferred for the initial
-Klondike release, not permanently prohibited.
+Hints, automatic completion, aggregate statistics beyond the agreed deal
+history, and sound are deferred for the initial Klondike release, not
+permanently prohibited.
 Redo and deal sharing are explicitly excluded.
 
 ## 9. Baseline acceptance scenarios
@@ -622,7 +613,7 @@ the open decisions above must supply exact rules and measurable thresholds.
 | Area | Expected result |
 |---|---|
 | Casual/ad-free use | No page, menu, or gameplay state displays advertisements. |
-| Game navigation | Gallery selection opens the selected game's home; switching game types is possible through application Home. |
+| Game navigation | A game card title resumes its unfinished attempt or starts a new deal; switching game types is possible through application Home. |
 | Branding | The existing heading and content above it are retained; the old below-heading starter content is replaced by a game gallery. |
 | New deal | A user can start another deal from that game's home page. |
 | Persistent menu | The top-left menu control is present on application Home, game homes, and during gameplay. |
@@ -636,7 +627,7 @@ the open decisions above must supply exact rules and measurable thresholds.
 | Restoration | Closing and reopening restores the last persisted application/game state, including undo history. |
 | Local storage | Durable state, including move history, is in IndexedDB. |
 | Per-action save | Each move/choice, including Undo, saves resulting durable game state. |
-| Unfinished deals | No fixed application count cap prevents keeping another unfinished attempt. |
+| Unfinished deals | Each game type has at most one unfinished attempt; starting another requires confirmed Forfeit. |
 | Redo | No redo feature is offered. |
 | Install assistance | Install App (Help) explains supported installation and offline-use behavior. |
 | Offline readiness | Install App (Help) persistently shows whether the current version's required assets are cached and ready for offline use. |
@@ -645,6 +636,8 @@ the open decisions above must supply exact rules and measurable thresholds.
 | Responsive use | Once viewport targets are agreed, navigation and gameplay preserve readable content and reachable controls across those targets. |
 
 ## 10. Direction record
+
+This is a historical record; later decisions supersede earlier direction.
 
 - 2026-10-12: Owner supplied this initial requirements baseline and requested
   documentation before further application design or implementation.
@@ -840,3 +833,12 @@ the open decisions above must supply exact rules and measurable thresholds.
 - 2026-11-26: Owner approved separate Klondike deal, attempt, and Undo records
   and approximately one-second active-play timer checkpoints, as described in
   sections 4 and 5, accepting possible lost time after an unexpected close.
+- 2026-11-26: Owner chose direct game-card actions, a single unfinished attempt
+  per game type, confirmed Forfeit before replacement, and a deal-based Replay
+  picker with result, time, moves, score, and attempt count.
+- 2026-11-26: Owner favored device performance and a quiet experience: use
+  approximately 15-second active timer checkpoints and, without Web Locks,
+  automatically recover after a fenced lease expires (superseded below).
+- 2026-11-27: Owner removed the multi-window coordination requirement. Concurrent
+  tabs or windows may overwrite or corrupt progress; ordinary single-window
+  durability and save-error handling remain required.

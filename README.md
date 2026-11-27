@@ -34,8 +34,9 @@ For browser tests, use the **Serve tests** task or run:
 python -m http.server 4174 --bind 127.0.0.1 --directory .
 ```
 
-Open http://127.0.0.1:4174/tests/test.html. The tests remain outside `docs/`
-and are not deployed.
+Open http://127.0.0.1:4174/tests/test.html for deal tests or
+http://127.0.0.1:4174/tests/durable.test.html for durable storage tests. The
+tests remain outside `docs/` and are not deployed.
 
 `clean.ps1` is intentionally non-destructive: `docs/` is the application source,
 not disposable output. Release audits and PM records are not build outputs.

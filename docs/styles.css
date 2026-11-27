@@ -17,6 +17,11 @@ Generated: 2026-10-12T22:06:35Z
   --color-accent: #d6c68e;
   --color-border: #517b60;
   --color-overlay: rgb(0 0 0 / 65%);
+  --color-card-face: #fffdf5;
+  --color-card-ink: #1d2421;
+  --color-card-red: #b51f32;
+  --color-card-back: #315884;
+  --color-card-back-detail: #d7e4f2;
   --shadow-menu: 0 .5rem 1.5rem rgb(0 0 0 / 35%);
   --space-sm: .5rem;
   --space-md: 1rem;
@@ -27,7 +32,26 @@ Generated: 2026-10-12T22:06:35Z
 body { margin: 0; min-width: 280px; background: var(--color-background); color: var(--color-text); }
 a { color: var(--color-accent); }
 button, summary { cursor: pointer; }
-.app-header { position: relative; z-index: 10; padding: var(--space-md); }
+.app-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+}
+.app-title { min-width: 0; margin: 0; font-size: 1.25rem; }
+.app-title-game {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.game-menu-slot { margin-left: auto; }
+.game-menu-slot:empty { display: none; }
 .app-menu-trigger {
   border: 1px solid var(--color-border);
   border-radius: .5rem;
@@ -38,7 +62,7 @@ button, summary { cursor: pointer; }
 }
 .app-menu {
   position: absolute;
-  top: calc(100% - var(--space-sm));
+  top: 100%;
   left: var(--space-md);
   display: grid;
   min-width: 220px;
@@ -52,7 +76,9 @@ button, summary { cursor: pointer; }
 .app-menu[hidden] { display: none; }
 .app-menu a { padding: .75rem; border-radius: .5rem; text-decoration: none; }
 .app-menu a:hover, .app-menu a:focus-visible { background: var(--color-surface); }
-.app-content { max-width: 760px; margin: 2rem auto 0; padding: var(--space-lg); text-align: center; }
+.app-content { max-width: 760px; margin: 0 auto; padding: var(--space-md); text-align: center; }
+.app-content > p:first-child { margin-top: var(--space-sm); }
+.game-content { max-width: none; }
 .eyebrow { letter-spacing: .2em; text-transform: uppercase; color: var(--color-accent); }
 .game-gallery { display: grid; gap: var(--space-md); margin: var(--space-lg) 0; text-align: left; }
 .game-card {
@@ -64,6 +90,15 @@ button, summary { cursor: pointer; }
 }
 .game-card-header { display: flex; align-items: center; gap: var(--space-sm); }
 .game-card-header h2 { margin: 0; }
+.game-card-title {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+}
 .game-card-menu { position: relative; }
 .game-card-menu-trigger, .modal-close {
   border: 0;
@@ -100,6 +135,89 @@ button, summary { cursor: pointer; }
 .game-card-menu-choices button:hover, .game-card-menu-choices button:focus-visible {
   background: var(--color-surface);
 }
+.game-card-menu-choices button:disabled, .game-card-title:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+.app-notice {
+  margin: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: .5rem;
+  background: var(--color-surface-raised);
+}
+.app-notice:empty { display: none; }
+.app-notice button, .klondike-actions button {
+  margin: var(--space-sm);
+  padding: .65rem .8rem;
+  border: 1px solid var(--color-border);
+  border-radius: .5rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+.klondike-message { margin: var(--space-sm) 0; }
+.klondike-stats { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 var(--space-md); }
+.klondike-stats p { margin: var(--space-sm) 0; }
+.klondike-undo {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: .5rem;
+  padding: var(--space-sm);
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+}
+.klondike-undo:not(:disabled):hover, .klondike-undo:not(:disabled):focus-visible {
+  background: var(--color-surface-raised);
+}
+.klondike-undo:disabled { color: var(--color-text); cursor: not-allowed; opacity: .65; }
+.klondike-scroll-area { overflow-x: auto; max-width: 34rem; margin: 0 auto; padding-bottom: var(--space-md); }
+.klondike-scroll-hint { margin: var(--space-sm) 0; color: var(--color-accent); }
+.klondike-board {
+  --card-width: 4rem;
+  --card-height: 5.5rem;
+  width: 34rem;
+  text-align: left;
+}
+.klondike-board-top, .klondike-foundations, .klondike-stock-area,
+.klondike-tableau { display: flex; gap: var(--space-sm); }
+.klondike-board-top { justify-content: space-between; margin-bottom: var(--space-lg); }
+.klondike-tableau { justify-content: space-between; }
+.klondike-pile, .klondike-column {
+  width: var(--card-width);
+  min-height: var(--card-height);
+  border: 1px solid var(--color-border);
+  border-radius: .4rem;
+}
+.klondike-card {
+  width: var(--card-width);
+  height: var(--card-height);
+  padding: .35rem;
+  border: 1px solid var(--color-card-ink);
+  border-radius: .4rem;
+  background: var(--color-card-face);
+  color: var(--color-card-ink);
+  font-weight: 700;
+}
+.klondike-card-red { color: var(--color-card-red); }
+.klondike-card-back {
+  border: 3px solid var(--color-card-back-detail);
+  background: var(--color-card-back);
+}
+.klondike-pile .klondike-card, .klondike-column .klondike-card { margin-left: -1px; }
+.klondike-column .klondike-card + .klondike-card { margin-top: -4.25rem; }
+.klondike-game-menu .game-card-menu-trigger { font-size: 1rem; line-height: normal; }
+.klondike-game-menu .game-card-menu-trigger::after { content: " \25be"; }
+.klondike-game-menu .game-card-menu-trigger[aria-expanded="true"]::after { content: " \25b4"; }
+.klondike-game-menu .game-card-menu-choices { right: 0; left: auto; z-index: 11; }
+.klondike-game-menu-label {
+  margin: 0 0 var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-sm) .75rem;
+  color: var(--color-accent);
+  font-size: .9rem;
+}
 .modal {
   width: min(42rem, calc(100% - 2rem));
   max-height: calc(100% - 2rem);
@@ -121,7 +239,7 @@ button, summary { cursor: pointer; }
 .offline-status:empty { display: none; }
 @media (min-width: 700px) {
   .game-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .app-content { margin-top: 4rem; }
+  .app-content:not(.game-content) { margin-top: var(--space-lg); }
 }
 button:focus-visible, a:focus-visible, summary:focus-visible {
   outline: 3px solid var(--color-accent);

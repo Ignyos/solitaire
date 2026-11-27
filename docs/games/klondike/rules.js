@@ -2,7 +2,7 @@
 
 export const klondikeRules = {
   title: 'Klondike rules',
-  introduction: 'Klondike gameplay is not implemented in this version. These rules describe the classic draw-one and draw-three variants planned for it.',
+  introduction: 'These rules describe classic draw-one and draw-three Klondike.',
   sections: [
     {
       heading: 'Objective',
