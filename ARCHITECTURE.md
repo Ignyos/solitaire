@@ -33,9 +33,8 @@ behavior lives in `REQUIREMENTS.md`; coding style lives in
 - **Durable actions:** board snapshot and undo history change atomically.
   Automatic consequences are part of the action's undo step. Winning or
   forfeiting records the outcome and deletes move history atomically.
-- **Write safety:** one writable window; Web Locks with a tested, fail-closed
-  fallback and transactional revision checks. Revision conflicts stop play and
-  offer to load the latest save, not retry stale actions.
+- **Write safety:** serialize related saves within a window. Separate windows
+  are not coordinated and may overwrite or corrupt progress.
 - **Save failures:** shared coordinator retries the same atomic operation up to
   three times, one second apart, each in a fresh transaction. On final failure,
   block moves and offer manual Retry or Revert to the last save.
@@ -73,7 +72,6 @@ by the first game (Klondike), including:
 - Exact storage record schemas, indexes, and module API signatures.
 - The folder/module layout and game contract details beyond approved
   responsibilities.
-- Cross-browser writable-window fallback mechanics.
 - Cache verification, asset-manifest generation, and service-worker lifecycle
   implementation details.
 
@@ -103,7 +101,7 @@ internal helper names or the provisional folder layout.
   settings writes are blocked, a friendly message is shown, and static
   Help/About content remains available.
 
-### Persistence and ownership
+### Persistence
 
 - [ ] A user action and its automatic consequences update the attempt snapshot
   and undo history atomically. Undo atomically restores the prior snapshot and
@@ -113,19 +111,12 @@ internal helper names or the provisional folder layout.
 - [ ] A storage write gets at most three automatic retries, each one second
   apart and in a fresh transaction. After final failure, moves stop and the
   user can Retry or Revert to the last saved snapshot.
-- [ ] A revision conflict is not retried automatically; moves stop and the
-  user can explicitly load the latest saved state.
-- [ ] At most one window can write. Other windows are read-only; ownership
-  takeover reloads the latest snapshot and undo history before writes resume.
-- [ ] On `versionchange`, an open window stops storage activity, closes its
-  database connection, and presents the approved reload notice.
 
 ### Settings and UI services
 
 - [ ] An unset setting reads as its declared default without writing it;
   invalid or unknown settings are rejected.
 - [ ] Changing game options immediately persists the last-selected values.
-  Other open read-only windows re-read and apply changes from IndexedDB.
 - [ ] Notification cards follow configured defaults (upper-right below the
   application menu, Fade In/Out, 3 seconds, announcements off, maximum 3).
   Hover/focus pauses dismissal; required-action cards do not auto-dismiss.
@@ -169,7 +160,7 @@ This structure is a suggestion until the Klondike implementation confirms it.
 ```
 docs/
   main.js            app startup and page routing
-  core/              storage, ownership lock, settings, notifications,
+  core/              storage, settings, notifications,
                      menu, modals, install help, update handling, themes
   cards/             card and deck models, shuffle, deal fingerprint,
                      piles, move history and Undo
@@ -248,9 +239,8 @@ approved deferred lifecycle.
 
 ## Storage boundary
 
-The responsibility split, database topology, and upgrade coordination below
-are approved. Exact durable record fields and indexes are reserved for a
-separate discussion.
+The responsibility split and database topology below are approved. Exact
+durable record fields and indexes are reserved for a separate discussion.
 
 ### Confirmed constraints
 
@@ -264,13 +254,12 @@ separate discussion.
   atomically.
 - Klondike stores deal, attempt, and individual Undo records separately within
   its game store. Its active-play timer checkpoints approximately once per
-  second and on pause; coordinate checkpoint and gameplay writes so neither
+  15 seconds and on pause; coordinate checkpoint and gameplay writes so neither
   overwrites newer state.
 - Failed saves get three automatic retries one second apart; after that, block
   moves and offer Retry or Revert to last save.
 - Database migrations must preserve existing records on failure.
-- One application window writes at a time; writes also check revisions to
-  reject stale state.
+- No coordination or stale-write protection is required across windows.
 
 ### Approved responsibility split
 
@@ -303,22 +292,17 @@ the attempt and removes its move history in one transaction. A transaction
 must not await network work, timers, or unrelated asynchronous work; IndexedDB
 may deactivate an idle transaction.
 
-The adapter must make transaction scope explicit, prevent writes without
-application ownership, verify expected revisions transactionally, and surface
-failures to the friendly UI error layer while retaining full console details.
-
-Revision mismatches are conflicts, not retryable storage failures. Stop further
-moves, report that progress changed elsewhere, and offer to load the latest
-durable snapshot; this discards the unsaved action. Do not replay or blindly
-retry the stale operation.
+The adapter must make transaction scope explicit and surface failures to the
+friendly UI error layer while retaining full console details. Game repositories
+validate the state needed for an atomic operation.
 
 ### Save coordinator (approved responsibility)
 
 The shared save coordinator owns the approved three retries, spaced one second
 apart. Each retry starts a fresh IndexedDB transaction for the same pending
 atomic operation; it never attempts to reuse an aborted transaction. It does
-not retry revision conflicts. Game repositories define the operation and
-provide the game-specific action for reverting to the last durable snapshot.
+not retry invalid inputs or invalid attempt states. Game repositories define
+the operation and provide the game-specific action for reverting to the last durable snapshot.
 The coordinator reports final storage failure to the UI error layer and keeps
 the pending operation available for manual Retry or Revert.
 
@@ -333,25 +317,10 @@ migration steps remain owned by that game's definition.
 Record fields, indexes, database naming/version constants, and exact API
 signatures are intentionally deferred to the storage-schema discussion.
 
-### Writable-window ownership (approved direction)
+### Concurrent windows
 
-- Use the Web Locks API where available, with an IndexedDB lease and
-  transactional revision checks as the tested fallback.
-- BroadcastChannel may notify windows of ownership/state changes; it is not a
-  lock.
-- If fallback ownership is ambiguous, fail closed: do not allow writes until
-  ownership can be established.
-- Explicit takeover must make the previous owner read-only and reload the
-  latest durable state before the new owner resumes writes.
-
-### Coordinating database upgrades (approved)
-
-- Every application window closes its database connection on `versionchange`
-  and stops storage activity.
-- A window requesting an upgrade waits for older connections to close, then
-  performs the versioned upgrade.
-- A window displaced by an upgrade shows a friendly notice such as
-  “Updating—please reload.” It does not continue using the closed connection.
+The application does not coordinate writes or database upgrades between windows.
+Concurrent use can overwrite or corrupt saved progress.
 
 ## Settings interface
 
@@ -470,7 +439,9 @@ Approved contract:
   handlers wait for pending durable writes where required.
 - The trigger remains reachable and unobstructed by notifications.
 
-The exact API shape, item visuals, and responsive panel placement remain open.
+The compact top bar scrolls with the page. It shows Solitaire on Home and a
+game-name dropdown with a labeled actions menu on game screens. The exact menu
+API shape and item visuals remain open.
 
 ## Navigation/router interface
 
@@ -549,11 +520,9 @@ Approved sequence:
 3. Open IndexedDB and complete required upgrades/migrations before reading
    persisted application state.
 4. Load application settings and apply theme/display preferences.
-5. Establish writable-window ownership. A window without ownership can still
-   read and render in read-only mode.
-6. Resolve the startup route: valid explicit hash first, otherwise the last
+5. Resolve the startup route: valid explicit hash first, otherwise the last
    stable saved context.
-7. Load the data needed for that route and render it. Keep transient overlays
+6. Load the data needed for that route and render it. Keep transient overlays
    closed on startup.
 
 The composition root passes service interfaces, game definitions, and route
@@ -567,6 +536,10 @@ content may remain available. Do not offer volatile-only gameplay that could
 lose unsaved progress.
 
 ## Game contract
+
+This is the approved target contract, not the current registry API. Klondike's
+integration is still explicitly wired; see the
+[game implementation guide](GAME-IMPLEMENTATION.md) for current boundaries.
 
 Every game exports one definition object containing:
 
@@ -597,7 +570,17 @@ Update it in the same change that adds, renames, or removes a shared export.
 | Module | Export | Purpose |
 |---|---|---|
 | `core/modal.js` | `openModal` | Opens an accessible modal and manages dismissal and focus |
+| `core/storage.js` | `SETTINGS_STORE`, `APPLICATION_STORE`, `openStorage`, `requestResult`, `withTransaction` | Opens IndexedDB and provides scoped transaction/request handling |
+| `core/game-settings.js` | `readGameSettings`, `saveGameOption`, `saveOptionsDisplay` | Persists per-game options and new-game dialog preferences |
+| `core/navigation-context.js` | `readLastRoute`, `saveLastRoute` | Reads and saves the last stable route |
+| `core/save-coordinator.js` | `saveWithRetries` | Retries failed durable saves unless the error is non-retryable |
+| `cards/deck.js` | `shuffledDeck`, `fingerprintDeal` | Creates a secure shuffled deck and canonical fingerprint |
 | `shared-ui/rules-content.js` | `createRulesContent` | Renders supplied game rules for a modal |
+| `shared-ui/game-options.js` | `openGameOptions` | Opens reusable game-option controls for settings or a new deal |
 | `games/registry.js` | `games` | Supplies the game gallery and each game's rules content |
 | `games/klondike/rules.js` | `klondikeRules` | Provides Klondike setup, objective, move, and variant guidance |
 | `games/klondike/deal.js` | `dealKlondike` | Builds a Klondike starting board from a supplied card order |
+| `games/klondike/moves.js` | `IllegalMoveError`, `applyKlondikeAction`, `findAutomaticMove` | Applies legal Klondike moves and scoring and selects automatic moves without mutating the board |
+| `games/klondike/store.js` | `KLONDIKE_STORE`, `AttemptStateError`, `upgradeKlondikeStore`, `readActiveAttempt`, `readAttempt`, `readFinishedDeals`, `createAttempt`, `retryAttempt`, `checkpointAttempt`, `readLastUndo`, `applyAttemptAction`, `undoAttemptAction`, `forfeitAttempt` | Manages durable Klondike deals and attempts |
+| `games/klondike/view.js` | `createKlondikeBoard` | Renders the Klondike board and handles card interactions |
+| `games/klondike/navigation.js` | `createKlondikeNavigation` | Connects Klondike navigation and saved attempts |

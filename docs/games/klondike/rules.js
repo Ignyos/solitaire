@@ -2,7 +2,7 @@
 
 export const klondikeRules = {
   title: 'Klondike rules',
-  introduction: 'Klondike gameplay is not implemented in this version. These rules describe the classic draw-one and draw-three variants planned for it.',
+  introduction: 'These rules describe classic draw-one and draw-three Klondike.',
   sections: [
     {
       heading: 'Objective',
@@ -39,6 +39,15 @@ export const klondikeRules = {
       paragraphs: [
         'Place Aces on empty foundation piles, then build upward in the same suit to King.',
         'Only cards that are available for play may be moved to a foundation.'
+      ]
+    },
+    {
+      heading: 'Controls and scoring',
+      paragraphs: [
+        'Drag cards to a destination. Double-click a card, or tap it on a phone, to move it automatically: foundations are preferred, then the leftmost legal tableau.',
+        'With a keyboard, select a face-up card and then a destination; press Escape to cancel the selection.',
+        'Undo reverses the last action, including any card it revealed, and costs one point. Undo remains available after resuming an unfinished deal.',
+        'Moving a card to a foundation, revealing a tableau card, or moving a waste card to the tableau earns one point each. Moving a foundation card back to the tableau costs one point.'
       ]
     }
   ]

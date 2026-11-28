@@ -12,10 +12,11 @@
   Promise.all([
     import(`./games/registry.js?v=${assetVersion}`),
     import(`./core/modal.js?v=${assetVersion}`),
-    import(`./shared-ui/rules-content.js?v=${assetVersion}`)
+    import(`./shared-ui/rules-content.js?v=${assetVersion}`),
+    import(`./games/klondike/navigation.js?v=${assetVersion}`)
   ])
-    .then(([{ games }, { openModal }, { createRulesContent }]) =>
-      initialize(games, openModal, createRulesContent))
+    .then(([{ games }, { openModal }, { createRulesContent }, { createKlondikeNavigation }]) =>
+      initialize(games, openModal, createRulesContent, createKlondikeNavigation))
     .catch(error => {
       console.error('Unable to load the Solitaire game registry:', error);
       document.getElementById('app-content').replaceChildren(createErrorContent());
@@ -73,30 +74,45 @@
   }
 
   /**
-   * @param {import('./games/registry.js').GameDefinition[]} games
-   * @param {typeof import('./core/modal.js').openModal} openModal
-   * @param {typeof import('./shared-ui/rules-content.js').createRulesContent} createRulesContent
+   * @param {import('./games/registry.js?v=2026-10-21-23-35').GameDefinition[]} games
+   * @param {typeof import('./core/modal.js?v=2026-10-21-23-35').openModal} openModal
+   * @param {typeof import('./shared-ui/rules-content.js?v=2026-10-21-23-35').createRulesContent} createRulesContent
+   * @param {typeof import('./games/klondike/navigation.js?v=2026-10-21-23-35').createKlondikeNavigation} createKlondikeNavigation
    * @returns {void}
    */
-  function initialize(games, openModal, createRulesContent) {
-    const render = () => {
-      closeMenu();
-      renderHome(games, openModal, createRulesContent);
-    };
-    window.addEventListener('hashchange', render);
-    render();
+  function initialize(games, openModal, createRulesContent, createKlondikeNavigation) {
+    const game = games.find(entry => entry.id === 'klondike');
+    if (!game) throw new Error('Klondike is missing from the game registry.');
+    createKlondikeNavigation({
+      content: document.getElementById('app-content'),
+      title: document.getElementById('app-title'),
+      gameMenuSlot: document.getElementById('game-menu-slot'),
+      openModal,
+      createRulesContent,
+      game,
+      renderGallery: app => {
+        document.getElementById('app-title').textContent = 'Solitaire';
+        document.getElementById('app-title').classList.remove('app-title-game');
+        document.getElementById('game-menu-slot').replaceChildren();
+        document.getElementById('app-content').classList.remove('game-content');
+        renderHome(games, openModal, createRulesContent, app);
+      },
+      closeAppMenu: closeMenu
+    }).catch(error => {
+      console.error('Unable to initialize Klondike navigation:', error);
+      document.getElementById('app-content').replaceChildren(createErrorContent());
+    });
   }
 
   /**
-   * @param {import('./games/registry.js').GameDefinition[]} games
-   * @param {typeof import('./core/modal.js').openModal} openModal
-   * @param {typeof import('./shared-ui/rules-content.js').createRulesContent} createRulesContent
+   * @param {import('./games/registry.js?v=2026-10-21-23-35').GameDefinition[]} games
+   * @param {typeof import('./core/modal.js?v=2026-10-21-23-35').openModal} openModal
+   * @param {typeof import('./shared-ui/rules-content.js?v=2026-10-21-23-35').createRulesContent} createRulesContent
+   * @param {Object} app
    * @returns {void}
    */
-  function renderHome(games, openModal, createRulesContent) {
+  function renderHome(games, openModal, createRulesContent, app) {
     const content = document.getElementById('app-content');
-    const heading = document.createElement('h1');
-    heading.textContent = 'Solitaire';
     const intro = document.createElement('p');
     intro.textContent = 'Choose a game.';
     const gallery = document.createElement('section');
@@ -109,7 +125,16 @@
       const cardHeader = document.createElement('div');
       cardHeader.className = 'game-card-header';
       const title = document.createElement('h2');
-      title.textContent = game.name;
+      const titleButton = document.createElement('button');
+      titleButton.type = 'button';
+      titleButton.className = 'game-card-title';
+      titleButton.textContent = game.name;
+      titleButton.disabled = game.id !== 'klondike' || !app.storageReady ||
+        (!app.activeAttempt && !app.canWrite());
+      titleButton.addEventListener('click', () => {
+        app.titleAction(titleButton).catch(error => app.reportError('Unable to open the game:', error));
+      });
+      title.append(titleButton);
       const description = document.createElement('p');
       description.textContent = game.description;
       const menu = document.createElement('div');
@@ -128,6 +153,26 @@
       const rulesButton = document.createElement('button');
       rulesButton.type = 'button';
       rulesButton.textContent = 'Rules';
+      const newDealButton = document.createElement('button');
+      newDealButton.type = 'button';
+      newDealButton.textContent = 'New Deal';
+      newDealButton.disabled = game.id !== 'klondike' || !app.canWrite();
+      const resumeButton = document.createElement('button');
+      resumeButton.type = 'button';
+      resumeButton.textContent = 'Resume';
+      resumeButton.disabled = game.id !== 'klondike' || !app.activeAttempt;
+      const retryButton = document.createElement('button');
+      retryButton.type = 'button';
+      retryButton.textContent = 'Retry';
+      retryButton.disabled = game.id !== 'klondike' || !app.canWrite();
+      const forfeitButton = document.createElement('button');
+      forfeitButton.type = 'button';
+      forfeitButton.textContent = 'Forfeit';
+      forfeitButton.disabled = game.id !== 'klondike' || !app.activeAttempt || !app.canWrite();
+      const settingsButton = document.createElement('button');
+      settingsButton.type = 'button';
+      settingsButton.textContent = 'Settings';
+      settingsButton.disabled = game.id !== 'klondike' || !app.canWrite();
       const closeCardMenu = () => {
         choices.hidden = true;
         trigger.setAttribute('aria-expanded', 'false');
@@ -154,14 +199,34 @@
           status.textContent = 'Unable to open the rules. Please try again.';
         });
       });
-      choices.append(rulesButton);
+      newDealButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.newDeal(trigger).catch(error => app.reportError('Unable to start a new deal:', error));
+      });
+      resumeButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.resume().catch(error => app.reportError('Unable to resume the deal:', error));
+      });
+      retryButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.retry(trigger).catch(error => app.reportError('Unable to retry a deal:', error));
+      });
+      forfeitButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.forfeit(trigger).catch(error => app.reportError('Unable to forfeit the deal:', error));
+      });
+      settingsButton.addEventListener('click', () => {
+        closeCardMenu();
+        app.openSettings(trigger).catch(error => app.reportError('Unable to open game settings:', error));
+      });
+      choices.append(newDealButton, resumeButton, retryButton, forfeitButton, settingsButton, rulesButton);
       menu.append(trigger, choices);
       cardHeader.append(menu, title);
       card.append(cardHeader, description);
       gallery.append(card);
     }
 
-    content.replaceChildren(heading, intro, gallery);
+    content.replaceChildren(intro, gallery);
   }
 
   /**

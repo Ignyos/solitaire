@@ -8,9 +8,10 @@ Generated: 2026-10-12T22:06:35Z
 # Solitaire
 
 Static vanilla JavaScript browser/PWA starter, bootstrapped with the Ignyos
-Project Toolkit Full Profile in Greenfield mode. **Gameplay is not implemented.**
+Project Toolkit Full Profile in Greenfield mode. Klondike gameplay is in development.
 There is no compilation or package installation step. See [PM](PM/project-management.md)
-for work status and [AGENTS.md](AGENTS.md) for agent direction.
+for work status, [AGENTS.md](AGENTS.md) for agent direction, and the
+[game implementation guide](GAME-IMPLEMENTATION.md) for adding games.
 
 ## Local development
 
@@ -34,8 +35,9 @@ For browser tests, use the **Serve tests** task or run:
 python -m http.server 4174 --bind 127.0.0.1 --directory .
 ```
 
-Open http://127.0.0.1:4174/tests/test.html. The tests remain outside `docs/`
-and are not deployed.
+Open http://127.0.0.1:4174/tests/test.html for deal tests or
+http://127.0.0.1:4174/tests/durable.test.html for durable storage tests. The
+tests remain outside `docs/` and are not deployed.
 
 `clean.ps1` is intentionally non-destructive: `docs/` is the application source,
 not disposable output. Release audits and PM records are not build outputs.

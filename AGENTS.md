@@ -8,7 +8,7 @@ Generated: 2026-10-12T22:06:35Z
 # Solitaire agent guidance
 
 Solitaire is a static vanilla JavaScript browser application/PWA served from `docs/`.
-The initial scaffold does not implement gameplay. Preserve the existing license.
+Preserve the existing license.
 
 ## Source of truth and workflow
 
