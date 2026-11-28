@@ -1,18 +1,18 @@
 /** @module Durable Klondike navigation and active-play session */
 
-import { shuffledDeck, fingerprintDeal } from '../../cards/deck.js?v=2026-10-21-23-35';
-import { openStorage } from '../../core/storage.js?v=2026-10-21-23-35';
-import { readLastRoute, saveLastRoute } from '../../core/navigation-context.js?v=2026-10-21-23-35';
-import { saveWithRetries } from '../../core/save-coordinator.js?v=2026-10-21-23-35';
-import { readGameSettings, saveGameOption, saveOptionsDisplay } from '../../core/game-settings.js?v=2026-10-21-23-35';
-import { openGameOptions } from '../../shared-ui/game-options.js?v=2026-10-21-23-35';
+import { shuffledDeck, fingerprintDeal } from '../../cards/deck.js?v=2026-11-28-00-39';
+import { openStorage } from '../../core/storage.js?v=2026-11-28-00-39';
+import { readLastRoute, saveLastRoute } from '../../core/navigation-context.js?v=2026-11-28-00-39';
+import { saveWithRetries } from '../../core/save-coordinator.js?v=2026-11-28-00-39';
+import { readGameSettings, saveGameOption, saveOptionsDisplay } from '../../core/game-settings.js?v=2026-11-28-00-39';
+import { openGameOptions } from '../../shared-ui/game-options.js?v=2026-11-28-00-39';
 import {
   KLONDIKE_STORE, upgradeKlondikeStore, readActiveAttempt, readAttempt, readFinishedDeals,
   createAttempt, retryAttempt, checkpointAttempt, readLastUndo, applyAttemptAction,
   undoAttemptAction, forfeitAttempt, AttemptStateError
-} from './store.js?v=2026-10-21-23-35';
-import { createKlondikeBoard } from './view.js?v=2026-10-21-23-35';
-import { applyKlondikeAction, findAutomaticMove, IllegalMoveError } from './moves.js?v=2026-10-21-23-35';
+} from './store.js?v=2026-11-28-00-39';
+import { createKlondikeBoard } from './view.js?v=2026-11-28-00-39';
+import { applyKlondikeAction, findAutomaticMove, IllegalMoveError } from './moves.js?v=2026-11-28-00-39';
 
 const HOME_ROUTE = '#/home';
 const GAME_ROUTE = '#/games/klondike';

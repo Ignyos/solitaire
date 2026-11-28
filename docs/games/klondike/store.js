@@ -1,8 +1,8 @@
 /** @module Durable Klondike deal and attempt records */
 
-import { APPLICATION_STORE, SETTINGS_STORE, requestResult, withTransaction } from '../../core/storage.js?v=2026-10-21-23-35';
-import { dealKlondike } from './deal.js?v=2026-10-21-23-35';
-import { applyKlondikeAction } from './moves.js?v=2026-10-21-23-35';
+import { APPLICATION_STORE, SETTINGS_STORE, requestResult, withTransaction } from '../../core/storage.js?v=2026-11-28-00-39';
+import { dealKlondike } from './deal.js?v=2026-11-28-00-39';
+import { applyKlondikeAction } from './moves.js?v=2026-11-28-00-39';
 
 export const KLONDIKE_STORE = 'klondike';
 const LAYOUT_KEY = 'standard';
@@ -111,7 +111,7 @@ async function saveNewAttempt(transaction, attempt) {
 
 /**
  * @param {IDBDatabase} database
- * @param {{ attemptId: string, cards: import('./deal.js?v=2026-10-21-23-35').Card[], fingerprint: string, replace: { id: string, elapsedMs: number } | null }} input
+ * @param {{ attemptId: string, cards: import('./deal.js?v=2026-11-28-00-39').Card[], fingerprint: string, replace: { id: string, elapsedMs: number } | null }} input
  * @returns {Promise<Object>}
  */
 export function createAttempt(database, { attemptId, cards, fingerprint, replace }) {
@@ -207,7 +207,7 @@ export function checkpointAttempt(database, { id, elapsedMs }) {
 /**
  * @param {IDBDatabase} database
  * @param {string} id
- * @returns {Promise<{ board: import('./deal.js?v=2026-10-21-23-35').KlondikeBoard, scoreDelta: number } | null>}
+ * @returns {Promise<{ board: import('./deal.js?v=2026-11-28-00-39').KlondikeBoard, scoreDelta: number } | null>}
  */
 export function readLastUndo(database, id) {
   return withTransaction(database, [KLONDIKE_STORE], 'readonly', async transaction => {
@@ -219,7 +219,7 @@ export function readLastUndo(database, id) {
 
 /**
  * @param {IDBDatabase} database
- * @param {{ id: string, elapsedMs: number, action: import('./moves.js?v=2026-10-21-23-35').KlondikeAction }} input
+ * @param {{ id: string, elapsedMs: number, action: import('./moves.js?v=2026-11-28-00-39').KlondikeAction }} input
  * @returns {Promise<Object>}
  */
 export function applyAttemptAction(database, { id, elapsedMs, action }) {

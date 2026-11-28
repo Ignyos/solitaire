@@ -146,8 +146,8 @@ function enableCardInteraction(surface, scrollArea, onMove, onAutomaticMove) {
 }
 
 /**
- * @param {import('./deal.js?v=2026-10-21-23-35').KlondikeBoard|null} board
- * @param {{ draw: number, disabled: boolean, onDraw: () => void, onMove: (from: import('./moves.js?v=2026-10-21-23-35').MoveSource, to: import('./moves.js?v=2026-10-21-23-35').MoveDestination) => void, onAutomaticMove: (from: import('./moves.js?v=2026-10-21-23-35').MoveSource) => void }} options
+ * @param {import('./deal.js?v=2026-11-28-00-39').KlondikeBoard|null} board
+ * @param {{ draw: number, disabled: boolean, onDraw: () => void, onMove: (from: import('./moves.js?v=2026-11-28-00-39').MoveSource, to: import('./moves.js?v=2026-11-28-00-39').MoveDestination) => void, onAutomaticMove: (from: import('./moves.js?v=2026-11-28-00-39').MoveSource) => void }} options
  * @returns {{ element: HTMLElement, scrollArea: HTMLElement, hint: HTMLElement, cleanup: () => void }}
  */
 export function createKlondikeBoard(board, { draw, disabled, onDraw, onMove, onAutomaticMove }) {

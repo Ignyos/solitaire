@@ -1,6 +1,6 @@
 /** @module Solitaire game registry */
 
-import { klondikeRules } from './klondike/rules.js?v=2026-10-21-23-35';
+import { klondikeRules } from './klondike/rules.js?v=2026-11-28-00-39';
 
 /**
  * @typedef {Object} GameDefinition
@@ -8,7 +8,7 @@ import { klondikeRules } from './klondike/rules.js?v=2026-10-21-23-35';
  * @property {string} name
  * @property {string} description
  * @property {{ title: string, introduction: string, sections: Array<{ heading: string, paragraphs: string[] }> }} rules
- * @property {import('../core/game-settings.js?v=2026-10-21-23-35').GameOption[]} options
+ * @property {import('../core/game-settings.js?v=2026-11-28-00-39').GameOption[]} options
  */
 
 /** @type {GameDefinition[]} */

@@ -1,6 +1,6 @@
 /** @module Persisting the last stable application route */
 
-import { APPLICATION_STORE, requestResult, withTransaction } from './storage.js?v=2026-10-21-23-35';
+import { APPLICATION_STORE, requestResult, withTransaction } from './storage.js?v=2026-11-28-00-39';
 
 /**
  * @param {IDBDatabase} database

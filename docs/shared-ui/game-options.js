@@ -2,7 +2,7 @@
 
 /**
  * @param {{ openModal: Function, opener: HTMLElement, gameName: string,
- *   definitions: import('../core/game-settings.js?v=2026-10-21-23-35').GameOption[],
+ *   definitions: import('../core/game-settings.js?v=2026-11-28-00-39').GameOption[],
  *   values: Record<string, string | number>, start: boolean, replace: boolean,
  *   onOptionChange: (body: HTMLElement, optionId: string, value: string | number) => Promise<Record<string, string | number>>,
  *   onShowChange: (body: HTMLElement, showOptions: boolean) => Promise<boolean>,

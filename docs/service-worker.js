@@ -4,7 +4,7 @@
 // Profile: vanilla-js-github-pages-spa
 // Generated: 2026-10-12T22:06:35Z
 'use strict';
-const CACHE_NAME = 'solitaire-v2026-10-21-23-35';
+const CACHE_NAME = 'solitaire-v2026-11-28-00-39';
 const VERSION = CACHE_NAME.slice('solitaire-v'.length);
 const ASSETS = ['./', './index.html', './styles.css', './main.js',
   './games/registry.js', './games/klondike/rules.js', './games/klondike/deal.js', './games/klondike/moves.js',

@@ -74,10 +74,10 @@
   }
 
   /**
-   * @param {import('./games/registry.js?v=2026-10-21-23-35').GameDefinition[]} games
-   * @param {typeof import('./core/modal.js?v=2026-10-21-23-35').openModal} openModal
-   * @param {typeof import('./shared-ui/rules-content.js?v=2026-10-21-23-35').createRulesContent} createRulesContent
-   * @param {typeof import('./games/klondike/navigation.js?v=2026-10-21-23-35').createKlondikeNavigation} createKlondikeNavigation
+   * @param {import('./games/registry.js?v=2026-11-28-00-39').GameDefinition[]} games
+   * @param {typeof import('./core/modal.js?v=2026-11-28-00-39').openModal} openModal
+   * @param {typeof import('./shared-ui/rules-content.js?v=2026-11-28-00-39').createRulesContent} createRulesContent
+   * @param {typeof import('./games/klondike/navigation.js?v=2026-11-28-00-39').createKlondikeNavigation} createKlondikeNavigation
    * @returns {void}
    */
   function initialize(games, openModal, createRulesContent, createKlondikeNavigation) {
@@ -105,9 +105,9 @@
   }
 
   /**
-   * @param {import('./games/registry.js?v=2026-10-21-23-35').GameDefinition[]} games
-   * @param {typeof import('./core/modal.js?v=2026-10-21-23-35').openModal} openModal
-   * @param {typeof import('./shared-ui/rules-content.js?v=2026-10-21-23-35').createRulesContent} createRulesContent
+   * @param {import('./games/registry.js?v=2026-11-28-00-39').GameDefinition[]} games
+   * @param {typeof import('./core/modal.js?v=2026-11-28-00-39').openModal} openModal
+   * @param {typeof import('./shared-ui/rules-content.js?v=2026-11-28-00-39').createRulesContent} createRulesContent
    * @param {Object} app
    * @returns {void}
    */

@@ -1,6 +1,6 @@
 /** @module Persistent per-game options and new-game display preference */
 
-import { SETTINGS_STORE, requestResult, withTransaction } from './storage.js?v=2026-10-21-23-35';
+import { SETTINGS_STORE, requestResult, withTransaction } from './storage.js?v=2026-11-28-00-39';
 
 const DISPLAY_SETTING = 'show-options-before-new-games';
 

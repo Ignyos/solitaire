@@ -95,10 +95,10 @@ function moveCards(board, from, to) {
 
 /**
  * Apply one legal action without modifying the input board.
- * @param {import('./deal.js?v=2026-10-21-23-35').KlondikeBoard} board
+ * @param {import('./deal.js?v=2026-11-28-00-39').KlondikeBoard} board
  * @param {number} draw
  * @param {KlondikeAction} action
- * @returns {{ board: import('./deal.js?v=2026-10-21-23-35').KlondikeBoard, scoreDelta: number, won: boolean }}
+ * @returns {{ board: import('./deal.js?v=2026-11-28-00-39').KlondikeBoard, scoreDelta: number, won: boolean }}
  */
 export function applyKlondikeAction(board, draw, action) {
   if (!action || (action.type !== 'draw' && action.type !== 'move')) {
@@ -120,7 +120,7 @@ export function applyKlondikeAction(board, draw, action) {
 
 /**
  * Find the first legal foundation, then the leftmost legal tableau destination.
- * @param {import('./deal.js?v=2026-10-21-23-35').KlondikeBoard} board
+ * @param {import('./deal.js?v=2026-11-28-00-39').KlondikeBoard} board
  * @param {number} draw
  * @param {MoveSource} from
  * @returns {KlondikeAction | null}
